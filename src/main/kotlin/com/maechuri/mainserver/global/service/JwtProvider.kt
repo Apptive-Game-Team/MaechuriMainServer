@@ -29,7 +29,7 @@ class JwtProvider(
         privateKey = decodePrivateKey(privateKeyResource.inputStream.readBytes())
     }
 
-    fun createToken(subject: String, claims: Map<String, String>, ttl: Duration? = null): String {
+    fun createToken(subject: String, claims: Map<String, Any>, ttl: Duration? = null): String {
         val builder = Jwts.builder()
             .subject(subject)
             .issuedAt(Date())

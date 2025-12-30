@@ -14,7 +14,7 @@ class JwtProviderTest {
     @Test
     fun create_jwt_and_verify_success() {
         val history = listOf("user1", "user2", "user3")
-        val jwtString = jwtProvider.createToken(history)
+        val jwtString = jwtProvider.createToken("history", mapOf("history" to history))
         val map = jwtProvider.verifyAndExtract(jwtString)
         assertTrue(history.equals(map.get("history")))
     }
