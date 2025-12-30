@@ -1,6 +1,6 @@
-package com.maechuri.mainserver.service
+package com.maechuri.mainserver.storage.service
 
-import com.maechuri.mainserver.config.MinioProperties
+import com.maechuri.mainserver.storage.config.MinioProperties
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest

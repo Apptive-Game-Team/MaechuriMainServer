@@ -1,4 +1,4 @@
-package com.maechuri.mainserver.config
+package com.maechuri.mainserver.storage.config
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
