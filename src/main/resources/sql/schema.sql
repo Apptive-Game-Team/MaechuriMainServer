@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS tag (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(31) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS asset (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(31) UNIQUE NOT NULL,
+    meta_file_url VARCHAR(255) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_asset_name ON asset(name);
+
+CREATE TABLE IF NOT EXISTS asset_tag (
+    id BIGSERIAL PRIMARY KEY,
+    tag_id BIGINT REFERENCES tag(id),
+    asset_id BIGINT REFERENCES asset(id)
+);
