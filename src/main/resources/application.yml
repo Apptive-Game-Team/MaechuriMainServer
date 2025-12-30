@@ -1,6 +1,15 @@
+server:
+  port: ${PORT:8080}
+
 spring:
   application:
     name: main-server
+  config:
+    import: optional:file:.env[.properties]
+  r2dbc:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PW}
 
 minio:
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
