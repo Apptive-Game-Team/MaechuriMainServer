@@ -1,5 +1,6 @@
 package com.maechuri.mainserver.global.service
 
+import io.jsonwebtoken.Jwt
 import io.jsonwebtoken.Jwts
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.io.Resource
@@ -11,6 +12,8 @@ import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import java.util.Date
 import kotlin.io.encoding.Base64
+import kotlin.time.Clock
+import kotlin.time.Duration
 
 @Component
 class JwtProvider(
@@ -26,13 +29,21 @@ class JwtProvider(
         privateKey = decodePrivateKey(privateKeyResource.inputStream.readBytes())
     }
 
-    fun createToken(history: List<Any>): String {
-        return Jwts.builder()
-            .subject("chat-history")
-            .claim("history", history)
+    fun createToken(subject: String, claims: Map<String, String>, ttl: Duration? = null): String {
+        val builder = Jwts.builder()
+            .subject(subject)
             .issuedAt(Date())
-            .signWith(privateKey, Jwts.SIG.RS256)
-            .compact()
+            .signWith(privateKey, Jwts.SIG.RS256);
+
+        for (claim in claims) {
+            builder.claim(claim.key, claim.value)
+        }
+
+        if (ttl != null) {
+            builder.expiration(Date(System.currentTimeMillis() + ttl.inWholeMilliseconds))
+        }
+
+        return builder.compact()
     }
 
     fun verifyAndExtract(token: String): Map<String, Any> {
@@ -48,7 +59,6 @@ class JwtProvider(
         return KeyFactory.getInstance("RSA").generatePublic(spec)
     }
 
-    // PEM 문자열(ByteArray)을 PrivateKey 객체로 변환
     private fun decodePrivateKey(keyBytes: ByteArray): PrivateKey {
         val spec = PKCS8EncodedKeySpec(parsePem(keyBytes))
         return KeyFactory.getInstance("RSA").generatePrivate(spec)
