@@ -16,3 +16,13 @@ CREATE TABLE IF NOT EXISTS asset_tag (
     tag_id BIGINT REFERENCES tag(id),
     asset_id BIGINT REFERENCES asset(id)
 );
+
+ALTER TABLE asset_tag DROP CONSTRAINT asset_tag_asset_id_fkey;
+ALTER TABLE asset_tag DROP CONSTRAINT asset_tag_tag_id_fkey;
+
+ALTER TABLE asset_tag
+    ADD CONSTRAINT fk_asset_tag_tag_id
+        FOREIGN KEY (tag_id) REFERENCES tag(id) ON DELETE CASCADE;
+ALTER TABLE asset_tag
+    ADD CONSTRAINT fk_asset_tag_asset_id
+        FOREIGN KEY (asset_id) REFERENCES asset(id) ON DELETE CASCADE;
