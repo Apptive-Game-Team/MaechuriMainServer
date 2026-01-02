@@ -1,38 +1,38 @@
-# Asset and Tag Management Implementation
+# 에셋 및 태그 관리 구현
 
-## Overview
-This document outlines the implementation of the asset and tag management system, including the administrative interface for managing assets and their associated tags.
+## 개요
+이 문서는 에셋과 관련 태그를 관리하기 위한 관리자 인터페이스를 포함하여 에셋 및 태그 관리 시스템의 구현에 대해 설명합니다.
 
-## Key Features
-- **Asset Management:** CRUD operations for assets.
-- **Tag Management:** CRUD operations for tags.
-- **Asset-Tag Relationship:** Association of multiple tags with an asset.
-- **Admin Interface:** Thymeleaf templates for a web-based administration panel.
+## 주요 기능
+- **에셋 관리:** 에셋에 대한 CRUD 작업.
+- **태그 관리:** 태그에 대한 CRUD 작업.
+- **에셋-태그 관계:** 하나의 에셋에 여러 태그를 연결.
+- **관리자 인터페이스:** 웹 기반 관리 패널을 위한 Thymeleaf 템플릿.
 
-## Implemented Components
+## 구현된 구성 요소
 
-### Entities
+### 엔티티
 - `Asset`
 - `AssetTag`
 - `Tag`
 
-### Repositories
+### 리포지토리
 - `AssetRepository`
 - `AssetTagRepository`
 - `TagRepository`
 
-### Services
+### 서비스
 - `AssetService`
-- `InteractionService` (if related to asset/tag interaction)
+- `InteractionService` (에셋/태그 상호작용과 관련된 경우)
 
-### Controllers
-- `AdminController` (for managing assets and tags via the web interface)
-- `InteractionController` (if related to asset/tag interaction)
+### 컨트롤러
+- `AdminController` (웹 인터페이스를 통해 에셋 및 태그 관리)
+- `InteractionController` (에셋/태그 상호작용과 관련된 경우)
 
-### Database Schema
-- Initial schema for asset management.
+### 데이터베이스 스키마
+- 에셋 관리를 위한 초기 스키마.
 
-### UI (Thymeleaf Templates)
+### UI (Thymeleaf 템플릿)
 - `admin/assets.html`
 - `admin/edit-asset.html`
 - `admin/edit-tag.html`
@@ -42,30 +42,30 @@ This document outlines the implementation of the asset and tag management system
 - `admin/new-tag.html`
 - `admin/tags.html`
 
-## How to Use (Admin Interface)
-1.  **Access the Admin Panel:** Navigate to `/admin` in your browser.
-2.  **Manage Assets:**
-    *   Click on "Assets" to view a list of all assets.
-    *   Click "Create New Asset" to add a new asset. You can assign tags during creation.
-    *   Click "Edit" next to an asset to modify its name, meta file URL, and associated tags.
-    *   Click "Delete" to remove an asset.
-3.  **Manage Tags:**
-    *   Click on "Tags" to view a list of all tags.
-    *   Click "Create New Tag" to add a new tag.
-    *   Click "Edit" next to a tag to change its name.
-    *   Click "Delete" to remove a tag. Note that this will also disassociate the tag from any assets it was assigned to.
+## 사용 방법 (관리자 인터페이스)
+1.  **관리자 패널 접속:** 브라우저에서 `/admin`으로 이동합니다.
+2.  **에셋 관리:**
+    *   "Assets"를 클릭하여 모든 에셋 목록을 봅니다.
+    *   "Create New Asset"을 클릭하여 새 에셋을 추가합니다. 생성 시 태그를 할당할 수 있습니다.
+    *   에셋 옆의 "Edit"을 클릭하여 이름, 메타 파일 URL 및 관련 태그를 수정합니다.
+    *   "Delete"를 클릭하여 에셋을 제거합니다.
+3.  **태그 관리:**
+    *   "Tags"를 클릭하여 모든 태그 목록을 봅니다.
+    *   "Create New Tag"를 클릭하여 새 태그를 추가합니다.
+    *   태그 옆의 "Edit"을 클릭하여 이름을 변경합니다.
+    *   "Delete"를 클릭하여 태그를 제거합니다. 이 작업은 해당 태그가 할당된 모든 에셋과의 연결도 해제합니다.
 
-## Technical Details
-*   **Stack:** The implementation uses a reactive stack with Spring WebFlux, R2DBC, and Kotlin Coroutines.
-*   **Asynchronous Operations:** The `AssetService` uses `suspend` functions for non-blocking database operations, making the application more efficient and scalable.
-*   **Controller Layer:** The `AdminController` uses `runBlocking` to bridge the imperative world of Spring MVC with the reactive service layer. This is a pragmatic approach for integrating with Thymeleaf, which is not inherently reactive.
-*   **Database:** The database schema is defined in `src/main/resources/sql/schema.sql`. It uses foreign keys to maintain data integrity between assets and tags. Unique constraints are in place for asset and tag names to prevent duplicates.
-*   **Transaction Management:** The `@Transactional` annotation is used in the `AssetService` to ensure that operations involving multiple database writes (e.g., creating an asset and its tag associations) are atomic.
-*   **Error Handling:** The `AdminController` includes basic error handling for `DataIntegrityViolationException`, which is thrown when trying to create an asset or tag with a name that already exists. This provides immediate feedback to the user in the UI.
+## 기술적 세부사항
+*   **스택:** 구현에는 Spring WebFlux, R2DBC 및 Kotlin Coroutines를 사용하는 리액티브 스택이 사용됩니다.
+*   **비동기 작업:** `AssetService`는 논블로킹 데이터베이스 작업을 위해 `suspend` 함수를 사용하여 애플리케이션을 더 효율적이고 확장 가능하게 만듭니다.
+*   **컨트롤러 레이어:** `AdminController`는 Spring MVC의 명령형 세계와 리액티브 서비스 레이어를 연결하기 위해 `runBlocking`을 사용합니다. 이것은 본질적으로 리액티브가 아닌 Thymeleaf와 통합하기 위한 실용적인 접근 방식입니다.
+*   **데이터베이스:** 데이터베이스 스키마는 `src/main/resources/sql/schema.sql`에 정의되어 있습니다. 외래 키를 사용하여 에셋과 태그 간의 데이터 무결성을 유지합니다. 중복을 방지하기 위해 에셋 및 태그 이름에 고유 제약 조건이 있습니다.
+*   **트랜잭션 관리:** `@Transactional` 어노테이션은 `AssetService`에서 여러 데이터베이스 쓰기 작업(예: 에셋 생성 및 태그 연결)이 원자적으로 수행되도록 보장하는 데 사용됩니다.
+*   **오류 처리:** `AdminController`에는 이미 존재하는 이름으로 에셋이나 태그를 생성하려고 할 때 발생하는 `DataIntegrityViolationException`에 대한 기본 오류 처리가 포함되어 있습니다. 이는 UI에서 사용자에게 즉각적인 피드백을 제공합니다.
 
-## Future Considerations
-*   **Enhanced Security:** The admin panel is currently not protected by any authentication or authorization mechanism. Spring Security should be added to secure these endpoints.
-*   **Improved User Feedback:** The UI provides basic error messages, but this could be enhanced with more user-friendly notifications and better visual feedback on success or failure of operations.
-*   **Bulk Operations:** For managing a large number of assets or tags, bulk import/export or bulk editing features would be useful.
-*   **Soft Deletes:** Instead of permanently deleting records, a "soft delete" mechanism (e.g., an `is_deleted` flag) could be implemented to allow for easier recovery of data.
-*   **Search and Filtering:** As the number of assets and tags grows, search and filtering capabilities will be essential for usability.
+## 향후 고려사항
+*   **향상된 보안:** 관리자 패널은 현재 어떠한 인증 또는 권한 부여 메커니즘으로도 보호되지 않습니다. 이러한 엔드포인트를 보호하기 위해 Spring Security를 추가해야 합니다.
+*   **개선된 사용자 피드백:** UI는 기본 오류 메시지를 제공하지만, 보다 사용자 친화적인 알림과 작업 성공 또는 실패에 대한 더 나은 시각적 피드백으로 향상될 수 있습니다.
+*   **대량 작업:** 많은 수의 에셋이나 태그를 관리하기 위해 대량 가져오기/내보내기 또는 대량 편집 기능이 유용할 것입니다.
+*   **소프트 삭제:** 레코드를 영구적으로 삭제하는 대신 "소프트 삭제" 메커니즘(예: `is_deleted` 플래그)을 구현하여 데이터를 더 쉽게 복구할 수 있습니다.
+*   **검색 및 필터링:** 에셋과 태그의 수가 증가함에 따라 사용성을 위해 검색 및 필터링 기능이 필수적입니다.
