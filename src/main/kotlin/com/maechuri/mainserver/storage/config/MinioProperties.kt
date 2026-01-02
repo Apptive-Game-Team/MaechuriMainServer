@@ -1,4 +1,4 @@
-package com.maechuri.mainserver.config
+package com.maechuri.mainserver.storage.config
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.bind.ConstructorBinding

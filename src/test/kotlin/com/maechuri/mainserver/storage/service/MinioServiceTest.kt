@@ -1,6 +1,7 @@
-package com.maechuri.mainserver.service
+package com.maechuri.mainserver.storage.service
 
-import com.maechuri.mainserver.config.MinioProperties
+import com.maechuri.mainserver.storage.config.MinioProperties
+import com.maechuri.mainserver.storage.service.MinioService
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith

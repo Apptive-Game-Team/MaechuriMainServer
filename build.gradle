@@ -34,8 +34,6 @@ dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-reflect'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-reactor'
     implementation 'tools.jackson.module:jackson-module-kotlin'
-    implementation 'software.amazon.awssdk:s3:2.20.26'
-    implementation 'software.amazon.awssdk:netty-nio-client:2.20.26'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     runtimeOnly 'org.postgresql:r2dbc-postgresql'
@@ -49,6 +47,15 @@ dependencies {
     testImplementation 'org.mockito.kotlin:mockito-kotlin:5.4.0'
     testImplementation 'io.r2dbc:r2dbc-h2:1.0.0.RELEASE'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // S3
+    implementation 'software.amazon.awssdk:s3:2.20.26'
+    implementation 'software.amazon.awssdk:netty-nio-client:2.20.26'
+
+    // JJWT 라이브러리 (v0.12.x 기준)
+    implementation("io.jsonwebtoken:jjwt-api:0.12.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
 }
 
 kotlin {
