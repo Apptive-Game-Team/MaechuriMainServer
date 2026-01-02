@@ -14,7 +14,7 @@ class HistoryServiceTest {
     @Autowired lateinit var historyService: HistoryService
 
     @Test
-    fun 히스토리Encoding하고Decoding_succcess() {
+    fun historyEncodingAndDecoding_succcess() {
         val objectId = 100L
         val conversationHistory = ConversationHistory(
             objectId,
