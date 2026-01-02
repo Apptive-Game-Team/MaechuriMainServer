@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout :: layout(~{::content})}">
+<body>
+<div th:fragment="content">
+    <div class="px-4 py-5 my-5 text-center">
+        <h1 class="display-5 fw-bold">Maechuri Admin</h1>
+        <div class="col-lg-6 mx-auto">
+            <p class="lead mb-4">Welcome to the admin page. You can manage assets and tags here.</p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="/admin/assets" class="btn btn-primary btn-lg px-4 gap-3">Manage Assets</a>
+                <a href="/admin/tags" class="btn btn-outline-secondary btn-lg px-4">Manage Tags</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

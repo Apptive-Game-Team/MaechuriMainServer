@@ -1,9 +1,15 @@
+server:
+  port: ${PORT:8080}
+
 spring:
   application:
     name: main-server
   config:
     import: optional:file:.env[.properties]
-
+  r2dbc:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PW}
 maechuri:
   jwt:
     public-key-path: ${JWT_PUBLIC_KEY_PATH}
