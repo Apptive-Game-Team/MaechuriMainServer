@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:replace="~{admin/layout :: layout(~{::content})}">
+<body>
+<div th:fragment="content">
+    <h1>New Asset</h1>
+    <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}">
+    </div>
+    <form th:action="@{/admin/assets}" th:object="${asset}" method="post" id="asset-form">
+        <div class="mb-3">
+            <label for="name" class="form-label">Asset Name</label>
+            <input type="text" id="name" th:field="*{name}" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label for="metaFileUrl" class="form-label">Asset URL</label>
+            <input type="text" id="metaFileUrl" th:field="*{metaFileUrl}" class="form-control" required />
+        </div>
+        <div class="mb-3">
+            <label for="tags" class="form-label">Tags</label>
+            <select id="tags" name="tags" class="form-control" multiple="multiple">
+                <option th:each="tag : ${allTags}"
+                        th:value="${tag.id}"
+                        th:text="${tag.name}"
+                        th:selected="${selectedTagIds != null && #lists.contains(selectedTagIds, tag.id)}"></option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Create</button>
+    </form>
+
+    <script th:inline="javascript">
+        $(document).ready(function() {
+            $('#tags').select2({
+                placeholder: "Select tags",
+                allowClear: true
+            });
+
+            $('#asset-form').on('submit', function(event) {
+                event.preventDefault();
+
+                const form = $(this);
+                const url = form.attr('action');
+
+                const params = new URLSearchParams();
+                params.append('name', $('#name').val());
+                params.append('metaFileUrl', $('#metaFileUrl').val());
+
+                const selectedTags = $('#tags').val();
+                if (selectedTags) {
+                    selectedTags.forEach(tagId => {
+                        params.append('tags', tagId);
+                    });
+                }
+
+                axios.post(url, params)
+                    .then(function (response) {
+                        // If the response URL is different, it means a redirect happened.
+                        if (response.request.responseURL && response.request.responseURL !== window.location.href) {
+                            window.location.href = response.request.responseURL;
+                        } else {
+                            // Otherwise, the same page was re-rendered with errors.
+                            document.open();
+                            document.write(response.data);
+                            document.close();
+                        }
+                    })
+                    .catch(function (error) {
+                        console.error('Error submitting form:', error);
+                        alert('An error occurred while creating the asset.');
+                    });
+            });
+        });
+    </script>
+</div>
+</body>
+</html>
