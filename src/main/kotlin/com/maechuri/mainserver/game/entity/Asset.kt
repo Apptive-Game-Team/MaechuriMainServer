@@ -1,15 +1,16 @@
 package com.maechuri.mainserver.game.entity
 
-import lombok.NoArgsConstructor
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.Transient
 import org.springframework.data.relational.core.mapping.Table
 
 @Table(name = "asset")
-@NoArgsConstructor
-class Asset {
-
+class Asset(
     @Id
-    private var id: Long? = null
-    private var name: String? = null
-    private var metaFileUrl: String? = null
+    var id: Long? = null,
+    var name: String,
+    var metaFileUrl: String,
+) {
+    @Transient
+    var assetTags: Set<AssetTag> = emptySet()
 }
