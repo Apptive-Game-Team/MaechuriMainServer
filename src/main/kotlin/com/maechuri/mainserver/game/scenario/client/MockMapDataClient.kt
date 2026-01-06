@@ -1,99 +1,20 @@
-package com.maechuri.mainserver.api.scenario.service
+package com.maechuri.mainserver.game.scenario.client
 
-import com.maechuri.mainserver.api.scenario.dto.*
-import com.maechuri.mainserver.game.domain.ConversationHistory
-import com.maechuri.mainserver.game.domain.Message
-import com.maechuri.mainserver.game.service.HistoryService
-import org.springframework.stereotype.Service
+import com.maechuri.mainserver.game.scenario.dto.*
+import org.springframework.stereotype.Component
 
-@Service
-class ScenarioService(
-    private val historyService: HistoryService
-) {
-
-    // Mock data for interaction types per object
-    private val objectInteractionTypes = mapOf(
-        100L to "two-way",
-        101L to "simple",
-        102L to "simple"
-    )
-
-    // Mock data for simple interactions
-    private val simpleMessages = mapOf(
-        101L to Pair("안녕 난 요리사 이선민이야", "이선민"),
-        102L to Pair("안녕하세요", null)
-    )
-
-    fun handleInteraction(scenarioId: Long, objectId: Long, request: InteractRequest): InteractResponse {
-        val interactionType = objectInteractionTypes[objectId] ?: "simple"
-
-        return when (interactionType) {
-            "two-way" -> handleTwoWayInteraction(objectId, request)
-            "simple" -> handleSimpleInteraction(objectId)
-            else -> throw IllegalArgumentException("Unknown interaction type: $interactionType")
-        }
-    }
-
-    private fun handleTwoWayInteraction(objectId: Long, request: InteractRequest): InteractResponse {
-        // Decode history if provided, or create new
-        val history = if (!request.history.isNullOrEmpty()) {
-            historyService.decodeHistory(objectId, request.history)
-        } else {
-            ConversationHistory(objectId, emptyList())
-        }
-
-        // If this is the initial request (no message from user), return greeting
-        if (request.message.isNullOrEmpty()) {
-            val responseMessage = "안녕 너가 말해봐"
-            val newHistory = ConversationHistory(
-                objectId,
-                history.conversation + Message("assistant", responseMessage)
-            )
-            return InteractResponse(
-                type = "two-way",
-                message = responseMessage,
-                history = historyService.encodeHistory(newHistory)
-            )
-        }
-
-        // Process user message and create response (mock AI response)
-        val userMessage = Message("user", request.message)
-        val responseMessage = "네, 제가 들었습니다: ${request.message}"
-        val assistantMessage = Message("assistant", responseMessage)
-
-        val newHistory = ConversationHistory(
-            objectId,
-            history.conversation + listOf(userMessage, assistantMessage)
-        )
-
-        return InteractResponse(
-            type = "two-way",
-            message = responseMessage,
-            history = historyService.encodeHistory(newHistory)
-        )
-    }
-
-    private fun handleSimpleInteraction(objectId: Long): InteractResponse {
-        val (message, name) = simpleMessages[objectId] ?: Pair("안녕하세요", null)
-        
-        return InteractResponse(
-            type = "simple",
-            message = message,
-            name = name
-        )
-    }
-
-    fun getMapData(scenarioId: Long): MapDataResponse {
-        // Return mock data - can be extended later with real implementation
+@Component
+class MockMapDataClient : MapDataClient {
+    
+    override fun getMapData(scenarioId: Long): MapDataResponse {
         return createMockMapData(scenarioId)
     }
-
-    fun getTodayMapData(): MapDataResponse {
-        // Return today's scenario map (mock data)
+    
+    override fun getTodayMapData(): MapDataResponse {
         // In real implementation, this would fetch today's scenario from database
         return createMockMapData(1L)
     }
-
+    
     private fun createMockMapData(scenarioId: Long): MapDataResponse {
         return MapDataResponse(
             createdDate = "2025-12-22",
