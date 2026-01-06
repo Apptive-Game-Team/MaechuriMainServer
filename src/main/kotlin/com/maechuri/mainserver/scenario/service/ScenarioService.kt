@@ -1,12 +1,12 @@
-package com.maechuri.mainserver.game.scenario.service
+package com.maechuri.mainserver.scenario.service
 
 import com.maechuri.mainserver.game.domain.ConversationHistory
 import com.maechuri.mainserver.game.domain.Message
-import com.maechuri.mainserver.game.scenario.client.MapDataClient
-import com.maechuri.mainserver.game.scenario.dto.InteractRequest
-import com.maechuri.mainserver.game.scenario.dto.InteractResponse
-import com.maechuri.mainserver.game.scenario.dto.MapDataResponse
-import com.maechuri.mainserver.game.scenario.repository.ScenarioObjectRepository
+import com.maechuri.mainserver.scenario.client.MapDataClient
+import com.maechuri.mainserver.scenario.dto.InteractRequest
+import com.maechuri.mainserver.scenario.dto.InteractResponse
+import com.maechuri.mainserver.scenario.dto.MapDataResponse
+import com.maechuri.mainserver.scenario.repository.ScenarioObjectRepository
 import com.maechuri.mainserver.game.service.HistoryService
 import org.springframework.stereotype.Service
 

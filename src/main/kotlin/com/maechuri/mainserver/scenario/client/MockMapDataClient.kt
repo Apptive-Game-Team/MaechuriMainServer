@@ -1,6 +1,11 @@
-package com.maechuri.mainserver.game.scenario.client
+package com.maechuri.mainserver.scenario.client
 
-import com.maechuri.mainserver.game.scenario.dto.*
+import com.maechuri.mainserver.scenario.dto.AssetInfo
+import com.maechuri.mainserver.scenario.dto.Layer
+import com.maechuri.mainserver.scenario.dto.MapData
+import com.maechuri.mainserver.scenario.dto.MapDataResponse
+import com.maechuri.mainserver.scenario.dto.MapObject
+import com.maechuri.mainserver.scenario.dto.Position
 import org.springframework.stereotype.Component
 
 @Component

@@ -1,8 +1,8 @@
 package com.maechuri.mainserver.game.scenario.controller
 
 import com.maechuri.mainserver.MainServerApplication
-import com.maechuri.mainserver.game.scenario.dto.InteractRequest
-import com.maechuri.mainserver.game.scenario.service.ScenarioService
+import com.maechuri.mainserver.scenario.dto.InteractRequest
+import com.maechuri.mainserver.scenario.service.ScenarioService
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

@@ -1,9 +1,9 @@
-package com.maechuri.mainserver.game.scenario.controller
+package com.maechuri.mainserver.scenario.controller
 
-import com.maechuri.mainserver.game.scenario.dto.InteractRequest
-import com.maechuri.mainserver.game.scenario.dto.InteractResponse
-import com.maechuri.mainserver.game.scenario.dto.MapDataResponse
-import com.maechuri.mainserver.game.scenario.service.ScenarioService
+import com.maechuri.mainserver.scenario.dto.InteractRequest
+import com.maechuri.mainserver.scenario.dto.InteractResponse
+import com.maechuri.mainserver.scenario.dto.MapDataResponse
+import com.maechuri.mainserver.scenario.service.ScenarioService
 import org.springframework.web.bind.annotation.*
 
 @RestController

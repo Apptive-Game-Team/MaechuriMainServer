@@ -1,6 +1,6 @@
-package com.maechuri.mainserver.game.scenario.client
+package com.maechuri.mainserver.scenario.client
 
-import com.maechuri.mainserver.game.scenario.dto.MapDataResponse
+import com.maechuri.mainserver.scenario.dto.MapDataResponse
 
 interface MapDataClient {
     fun getMapData(scenarioId: Long): MapDataResponse
