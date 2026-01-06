@@ -155,14 +155,14 @@ class ScenarioService(
                         position = Position(x = 2, y = 3)
                     ),
                     MapObject(
-                        id = 100,
+                        id = 101,
                         orderInLayer = 3,
                         name = "요리사 2",
                         type = listOf("Interactable", "Non-Passable"),
                         position = Position(x = 11, y = 3)
                     ),
                     MapObject(
-                        id = 100,
+                        id = 102,
                         orderInLayer = 3,
                         name = "요리사 3",
                         type = listOf("Interactable", "Non-Passable"),
