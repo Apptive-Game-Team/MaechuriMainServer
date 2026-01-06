@@ -18,11 +18,20 @@ class MockScenarioObjectRepository : ScenarioObjectRepository {
         102L to Pair("안녕하세요", null)
     )
     
+    // Mock data for initial greetings in two-way interactions
+    private val initialGreetings = mapOf(
+        100L to "안녕 너가 말해봐"
+    )
+    
     override fun getObjectInteractionType(objectId: Long): String? {
         return objectInteractionTypes[objectId]
     }
     
     override fun getSimpleInteractionMessage(objectId: Long): Pair<String, String?>? {
         return simpleMessages[objectId]
+    }
+    
+    override fun getInitialGreeting(objectId: Long): String? {
+        return initialGreetings[objectId]
     }
 }

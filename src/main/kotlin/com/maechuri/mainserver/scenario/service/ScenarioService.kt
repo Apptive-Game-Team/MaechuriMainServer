@@ -39,7 +39,7 @@ class ScenarioService(
 
         // If this is the initial request (no message from user), return greeting
         if (request.message.isNullOrEmpty()) {
-            val responseMessage = "안녕 너가 말해봐"
+            val responseMessage = objectRepository.getInitialGreeting(objectId) ?: "안녕하세요"
             val newHistory = ConversationHistory(
                 objectId,
                 history.conversation + Message("assistant", responseMessage)
