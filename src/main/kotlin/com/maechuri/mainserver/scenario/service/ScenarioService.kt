@@ -2,6 +2,7 @@ package com.maechuri.mainserver.scenario.service
 
 import com.maechuri.mainserver.game.domain.ConversationHistory
 import com.maechuri.mainserver.game.domain.Message
+import com.maechuri.mainserver.scenario.client.AiClient
 import com.maechuri.mainserver.scenario.client.MapDataClient
 import com.maechuri.mainserver.scenario.dto.InteractRequest
 import com.maechuri.mainserver.scenario.dto.InteractResponse
@@ -14,7 +15,8 @@ import org.springframework.stereotype.Service
 class ScenarioService(
     private val historyService: HistoryService,
     private val objectRepository: ScenarioObjectRepository,
-    private val mapDataClient: MapDataClient
+    private val mapDataClient: MapDataClient,
+    private val aiClient: AiClient
 ) {
 
     fun handleInteraction(scenarioId: Long, objectId: Long, request: InteractRequest): InteractResponse {
@@ -49,9 +51,9 @@ class ScenarioService(
             )
         }
 
-        // Process user message and create response (mock AI response)
+        // Process user message through AI client
         val userMessage = Message("user", request.message)
-        val responseMessage = "네, 제가 들었습니다: ${request.message}"
+        val responseMessage = aiClient.generateResponse(objectId, request.message, history.conversation)
         val assistantMessage = Message("assistant", responseMessage)
 
         val newHistory = ConversationHistory(
