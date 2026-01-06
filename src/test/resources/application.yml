@@ -1,0 +1,17 @@
+spring:
+  r2dbc:
+    url: r2dbc:h2:mem:///testdb
+    username: sa
+    password:
+
+maechuri:
+  jwt:
+    public-key-path: classpath:keys/public-key.pem
+    private-key-path: classpath:keys/private-key.pem
+
+minio:
+  access-key: minioadmin
+  secret-key: minioadmin
+  endpoint: http://localhost:9000
+  bucket-name: test-bucket
+  region: us-east-1
