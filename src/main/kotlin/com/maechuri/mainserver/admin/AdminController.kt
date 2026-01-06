@@ -3,12 +3,12 @@ package com.maechuri.mainserver.admin
 import com.maechuri.mainserver.game.entity.Asset
 import com.maechuri.mainserver.game.entity.Tag
 import com.maechuri.mainserver.game.service.AssetService
-import jakarta.servlet.http.HttpServletRequest
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ServerWebExchange
 
 @Controller
 @RequestMapping("/admin")
@@ -77,12 +77,10 @@ class AdminController(private val assetService: AssetService) {
     suspend fun updateAsset(
         @PathVariable id: Long,
         @ModelAttribute asset: Asset,
-        request: HttpServletRequest,
+        exchange: ServerWebExchange,
         model: Model
     ): String {
-        val tagIds: List<Long> = request.getParameterValues("tags")
-            ?.mapNotNull { it.toLongOrNull() }
-            ?: emptyList()
+        val tagIds = exchange.formData.awaitSingle().get("tags")?.mapNotNull { it.toLongOrNull() } ?: emptyList()
         try {
             assetService.updateAsset(id, asset, tagIds)
             return "redirect:/admin/assets"
