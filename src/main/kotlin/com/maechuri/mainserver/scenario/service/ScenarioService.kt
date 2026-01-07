@@ -19,7 +19,35 @@ class ScenarioService(
     private val aiClient: AiClient
 ) {
 
+    /**
+     * Handles a user interaction with a scenario object.
+     *
+     * The interaction type is resolved from the object metadata via [ScenarioObjectRepository.getObjectInteractionType].
+     * If the object doesn't exist or has no configured type, defaults to "simple".
+     *
+     * **Interaction Types:**
+     * - **"two-way"**: Used for conversational objects that maintain stateful dialogue with the user.
+     *   The request may contain an encoded `history` string, which is decoded into [ConversationHistory] by
+     *   [HistoryService.decodeHistory]. New messages (user + assistant) are appended and the updated history
+     *   is re-encoded with [HistoryService.encodeHistory] and returned in [InteractResponse.history]
+     *   so the client can pass it back on subsequent calls.
+     *
+     * - **"simple"**: Used for one-off interactions that do not track conversation state.
+     *   The `history` field in the request is ignored and no history is returned in the response.
+     *
+     * @param scenarioId Identifier of the scenario containing the object.
+     *                   Currently used for routing at a higher level; the interaction logic itself is based on [objectId].
+     * @param objectId Identifier of the interacted object; determines the interaction type and content source.
+     *                 Must be a positive value.
+     * @param request Interaction payload from the client, including the optional encoded history and user message.
+     * @return [InteractResponse] containing the interaction type, the assistant's message,
+     *         and (for "two-way") the updated encoded conversation history.
+     * @throws IllegalArgumentException if scenarioId or objectId are not positive values
+     */
     fun handleInteraction(scenarioId: Long, objectId: Long, request: InteractRequest): InteractResponse {
+        require(scenarioId > 0) { "scenarioId must be positive" }
+        require(objectId > 0) { "objectId must be positive" }
+        
         val interactionType = objectRepository.getObjectInteractionType(objectId) ?: "simple"
 
         return when (interactionType) {
@@ -79,7 +107,15 @@ class ScenarioService(
         )
     }
 
+    /**
+     * Retrieves map data for a specific scenario.
+     *
+     * @param scenarioId Identifier of the scenario. Must be a positive value.
+     * @return [MapDataResponse] containing the scenario map data including layers, objects, and assets.
+     * @throws IllegalArgumentException if scenarioId is not positive
+     */
     fun getMapData(scenarioId: Long): MapDataResponse {
+        require(scenarioId > 0) { "scenarioId must be positive" }
         return mapDataClient.getMapData(scenarioId)
     }
 

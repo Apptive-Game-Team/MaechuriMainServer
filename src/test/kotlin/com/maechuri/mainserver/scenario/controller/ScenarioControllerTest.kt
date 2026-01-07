@@ -1,4 +1,4 @@
-package com.maechuri.mainserver.game.scenario.controller
+package com.maechuri.mainserver.scenario.controller
 
 import com.maechuri.mainserver.MainServerApplication
 import com.maechuri.mainserver.scenario.dto.InteractRequest
@@ -11,7 +11,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 @SpringBootTest(classes = [MainServerApplication::class])
-class ScenarioControllerTest {
+class ScenarioServiceTest {
 
     @Autowired
     private lateinit var scenarioService: ScenarioService
