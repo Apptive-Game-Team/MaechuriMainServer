@@ -22,6 +22,36 @@ class ScenarioService(
     /**
      * Handles a user interaction with a scenario object.
      *
+     * The interaction type is resolved from the object metadata via
+     * [ScenarioObjectRepository.getObjectInteractionType]. If no type is
+     * configured, `"simple"` is used as the default.
+     *
+     * - `"two-way"`: used for conversational objects that maintain stateful
+     *   dialogue with the user. The request may contain an encoded `history`
+     *   string, which is decoded into [ConversationHistory] by
+     *   [HistoryService.decodeHistory]. New messages (user + assistant) are
+     *   appended and the updated history is re‑encoded with
+     *   [HistoryService.encodeHistory] and returned in [InteractResponse.history]
+     *   so the client can pass it back on subsequent calls.
+     *
+     * - `"simple"`: used for one‑off interactions that do not track
+     *   conversation state. The `history` field in the request is ignored and
+     *   no history is returned in the response.
+     *
+     * @param scenarioId identifier of the scenario containing the object.
+     *                   Currently used for routing at a higher level; the
+     *                   interaction logic itself is based on [objectId].
+     * @param objectId identifier of the interacted object; determines the
+     *                 interaction type and content source.
+     * @param request interaction payload from the client, including the
+     *                optional encoded history and user message.
+     * @return [InteractResponse] containing the interaction type, the
+     *         assistant's message, and (for `"two-way"`) the updated encoded
+     *         conversation history.
+     */
+    /**
+     * Handles a user interaction with a scenario object.
+     *
      * The interaction type is resolved from the object metadata via [ScenarioObjectRepository.getObjectInteractionType].
      * If the object doesn't exist or has no configured type, defaults to "simple".
      *
