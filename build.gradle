@@ -49,6 +49,7 @@ dependencies {
     testImplementation 'io.r2dbc:r2dbc-h2:1.0.0.RELEASE'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    implementation 'io.github.microutils:kotlin-logging-jvm:3.0.5'
     // S3
     implementation 'software.amazon.awssdk:s3:2.20.26'
     implementation 'software.amazon.awssdk:netty-nio-client:2.20.26'
