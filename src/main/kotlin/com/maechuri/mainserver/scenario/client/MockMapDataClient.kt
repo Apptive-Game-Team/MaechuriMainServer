@@ -109,6 +109,14 @@ class MockMapDataClient : MapDataClient {
                         imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_1.json"
                     ),
                     AssetInfo(
+                        id = 101,
+                        imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_2.json"
+                    ),
+                    AssetInfo(
+                        id = 102,
+                        imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_3.json"
+                    ),
+                    AssetInfo(
                         id = 999,
                         imageUrl = "https://s3.yunseong.dev/maechuri/objects/player.json"
                     )
