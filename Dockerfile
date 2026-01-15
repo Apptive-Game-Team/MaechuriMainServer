@@ -1,8 +1,11 @@
 FROM --platform=linux/arm64 gradle:9.2-jdk21 AS build
 WORKDIR /app
 
+ARG GITHUB_USERNAME
+ARG GITHUB_TOKEN
+
 COPY build.gradle settings.gradle ./
-RUN gradle dependencies --no-daemon
+RUN GITHUB_USERNAME=${GITHUB_USERNAME} GITHUB_TOKEN=${GITHUB_TOKEN} gradle dependencies --no-daemon
 
 COPY . .
 RUN gradle clean bootJar -x test --no-daemon
