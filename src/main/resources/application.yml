@@ -10,6 +10,7 @@ spring:
       - classpath:db.yml
       - classpath:maechuri.yml
       - classpath:minio.yml
+      - classpath:api-limit.yml
 
 logging:
   level:
