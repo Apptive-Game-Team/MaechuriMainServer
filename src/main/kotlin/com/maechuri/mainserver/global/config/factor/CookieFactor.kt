@@ -6,7 +6,7 @@ import org.springframework.web.server.ServerWebExchange
 import java.time.Duration
 import java.util.UUID
 
-class CookieFactor : Factor<String> {
+class CookieFactor: Factor<String> {
 
     private val API_LIMIT_KEY: String = "api_limit"
 

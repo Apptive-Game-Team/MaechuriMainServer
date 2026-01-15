@@ -1,9 +1,11 @@
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: native
 
 spring:
   application:
     name: main-server
+
   config:
     import:
       - optional:file:.env[.properties]
