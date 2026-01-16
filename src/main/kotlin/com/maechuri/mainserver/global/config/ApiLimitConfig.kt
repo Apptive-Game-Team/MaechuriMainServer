@@ -10,12 +10,16 @@ import java.time.Duration
 @Configuration
 class ApiLimitConfig {
 
+    private val PATH: String = "/api/scenarios/**"
+    private val ONE_DAY: Duration = Duration.ofDays(1)
+    private val LIMIT: Int = 100
+
     @Bean
     fun cookieRule(): LimitRule<String> {
         return LimitRule(
-            "/api/scenarios/**",
-            100,
-            Duration.ofDays(1),
+            PATH,
+            LIMIT,
+            ONE_DAY,
             CookieFactor()
         )
     }
@@ -23,9 +27,9 @@ class ApiLimitConfig {
     @Bean
     fun fingerPrintFactor(): LimitRule<String> {
         return LimitRule(
-            "/api/scenarios/**",
-            100,
-            Duration.ofDays(1),
+            PATH,
+            LIMIT,
+            ONE_DAY,
             FingerPrintFactor()
         )
     }
