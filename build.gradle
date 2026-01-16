@@ -23,7 +23,6 @@ configurations {
 
 repositories {
     mavenCentral()
-    mavenLocal()
     maven {
         url = uri("https://maven.pkg.github.com/dev-yunseong/api-limit-webflux")
         credentials {
@@ -69,7 +68,7 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
 
     // api rate limit 라이브러리
-    implementation 'dev.yunseong:api-limit-webflux:0.0.4'
+    implementation 'dev.yunseong:api-limit-webflux:0.0.1'
 }
 
 kotlin {
