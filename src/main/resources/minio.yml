@@ -1,0 +1,6 @@
+minio:
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  bucket-name: ${MINIO_BUCKET_NAME:maechuri-bucket}
+  region: ${MINIO_REGION:us-east-1}

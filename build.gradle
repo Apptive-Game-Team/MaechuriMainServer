@@ -23,6 +23,14 @@ configurations {
 
 repositories {
     mavenCentral()
+    mavenLocal()
+    maven {
+        url = uri("https://maven.pkg.github.com/dev-yunseong/api-limit-webflux")
+        credentials {
+            username = project.findProperty('GITHUB_ACTOR') ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty('GITHUB_TOKEN') ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 dependencies {
@@ -58,6 +66,9 @@ dependencies {
     implementation("io.jsonwebtoken:jjwt-api:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.5")
+
+    // api rate limit 라이브러리
+    implementation 'dev.yunseong:api-limit-webflux:0.0.4'
 }
 
 kotlin {

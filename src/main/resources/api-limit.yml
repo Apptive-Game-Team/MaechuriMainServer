@@ -1,0 +1,6 @@
+api-limit:
+  rules:
+    - path: /api/scenarios/**
+      limit: 200
+      duration: 1d
+      factor: IP

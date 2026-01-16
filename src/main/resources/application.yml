@@ -1,28 +1,21 @@
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: native
 
 spring:
   application:
     name: main-server
-  config:
-    import: optional:file:.env[.properties]
-  r2dbc:
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USER}
-    password: ${DATABASE_PW}
-maechuri:
-  jwt:
-    public-key-path: ${JWT_PUBLIC_KEY_PATH}
-    private-key-path: ${JWT_PRIVATE_KEY_PATH}
 
-minio:
-  access-key: ${MINIO_ACCESS_KEY:minioadmin}
-  secret-key: ${MINIO_SECRET_KEY:minioadmin}
-  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
-  bucket-name: ${MINIO_BUCKET_NAME:maechuri-bucket}
-  region: ${MINIO_REGION:us-east-1}
+  config:
+    import:
+      - optional:file:.env[.properties]
+      - classpath:db.yml
+      - classpath:maechuri.yml
+      - classpath:minio.yml
+      - classpath:api-limit.yml
 
 logging:
   level:
     org.springframework.security: TRACE
     org.springframework.web: DEBUG
+    dev.yunseong.apilimitwebflux: DEBUG
