@@ -1,0 +1,4 @@
+maechuri:
+  jwt:
+    public-key-path: ${JWT_PUBLIC_KEY_PATH}
+    private-key-path: ${JWT_PRIVATE_KEY_PATH}
