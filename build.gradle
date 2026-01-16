@@ -27,8 +27,8 @@ repositories {
     maven {
         url = uri("https://maven.pkg.github.com/dev-yunseong/api-limit-webflux")
         credentials {
-            username = project.findProperty('GITHUB_ACTOR') ?: System.getenv("GITHUB_ACTOR")
-            password = project.findProperty('GITHUB_TOKEN') ?: System.getenv("GITHUB_TOKEN")
+            username = project.findProperty('GITHUB_ACTOR') ?: System.getenv("GITHUB_USERNAME")
+            password = project.findProperty('GITHUB_TOKEN') ?: System.getenv("GITHUB_USERNAME")
         }
     }
 }
