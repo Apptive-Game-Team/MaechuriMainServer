@@ -1,4 +1,4 @@
-package com.maechuri.mainserver.scenario.client
+package com.maechuri.mainserver.game.client
 
 import com.maechuri.mainserver.game.domain.Message
 import org.springframework.stereotype.Component

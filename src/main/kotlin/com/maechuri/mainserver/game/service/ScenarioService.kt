@@ -1,15 +1,15 @@
-package com.maechuri.mainserver.scenario.service
+package com.maechuri.mainserver.game.service
 
+import com.maechuri.mainserver.game.client.AiClient
+import com.maechuri.mainserver.game.client.MapDataClient
 import com.maechuri.mainserver.game.domain.ConversationHistory
 import com.maechuri.mainserver.game.domain.Message
-import com.maechuri.mainserver.scenario.client.AiClient
-import com.maechuri.mainserver.scenario.client.MapDataClient
-import com.maechuri.mainserver.scenario.dto.InteractRequest
-import com.maechuri.mainserver.scenario.dto.InteractResponse
-import com.maechuri.mainserver.scenario.dto.MapDataResponse
-import com.maechuri.mainserver.scenario.repository.ScenarioObjectRepository
-import com.maechuri.mainserver.game.service.HistoryService
+import com.maechuri.mainserver.game.dto.InteractRequest
+import com.maechuri.mainserver.game.dto.InteractResponse
+import com.maechuri.mainserver.game.dto.MapDataResponse
+import com.maechuri.mainserver.game.repository.ScenarioObjectRepository
 import org.springframework.stereotype.Service
+import kotlin.collections.plus
 
 @Service
 class ScenarioService(
@@ -28,10 +28,10 @@ class ScenarioService(
      *
      * - `"two-way"`: used for conversational objects that maintain stateful
      *   dialogue with the user. The request may contain an encoded `history`
-     *   string, which is decoded into [ConversationHistory] by
+     *   string, which is decoded into [com.maechuri.mainserver.game.domain.ConversationHistory] by
      *   [HistoryService.decodeHistory]. New messages (user + assistant) are
      *   appended and the updated history is re‑encoded with
-     *   [HistoryService.encodeHistory] and returned in [InteractResponse.history]
+     *   [HistoryService.encodeHistory] and returned in [com.maechuri.mainserver.game.dto.InteractResponse.history]
      *   so the client can pass it back on subsequent calls.
      *
      * - `"simple"`: used for one‑off interactions that do not track
@@ -45,7 +45,7 @@ class ScenarioService(
      *                 interaction type and content source.
      * @param request interaction payload from the client, including the
      *                optional encoded history and user message.
-     * @return [InteractResponse] containing the interaction type, the
+     * @return [com.maechuri.mainserver.game.dto.InteractResponse] containing the interaction type, the
      *         assistant's message, and (for `"two-way"`) the updated encoded
      *         conversation history.
      */
@@ -57,9 +57,9 @@ class ScenarioService(
      *
      * **Interaction Types:**
      * - **"two-way"**: Used for conversational objects that maintain stateful dialogue with the user.
-     *   The request may contain an encoded `history` string, which is decoded into [ConversationHistory] by
+     *   The request may contain an encoded `history` string, which is decoded into [com.maechuri.mainserver.game.domain.ConversationHistory] by
      *   [HistoryService.decodeHistory]. New messages (user + assistant) are appended and the updated history
-     *   is re-encoded with [HistoryService.encodeHistory] and returned in [InteractResponse.history]
+     *   is re-encoded with [HistoryService.encodeHistory] and returned in [com.maechuri.mainserver.game.dto.InteractResponse.history]
      *   so the client can pass it back on subsequent calls.
      *
      * - **"simple"**: Used for one-off interactions that do not track conversation state.
@@ -70,14 +70,14 @@ class ScenarioService(
      * @param objectId Identifier of the interacted object; determines the interaction type and content source.
      *                 Must be a positive value.
      * @param request Interaction payload from the client, including the optional encoded history and user message.
-     * @return [InteractResponse] containing the interaction type, the assistant's message,
+     * @return [com.maechuri.mainserver.game.dto.InteractResponse] containing the interaction type, the assistant's message,
      *         and (for "two-way") the updated encoded conversation history.
      * @throws IllegalArgumentException if scenarioId or objectId are not positive values
      */
     fun handleInteraction(scenarioId: Long, objectId: Long, request: InteractRequest): InteractResponse {
         require(scenarioId > 0) { "scenarioId must be positive" }
         require(objectId > 0) { "objectId must be positive" }
-        
+
         val interactionType = objectRepository.getObjectInteractionType(objectId) ?: "simple"
 
         return when (interactionType) {
@@ -127,9 +127,9 @@ class ScenarioService(
     }
 
     private fun handleSimpleInteraction(objectId: Long): InteractResponse {
-        val (message, name) = objectRepository.getSimpleInteractionMessage(objectId) 
+        val (message, name) = objectRepository.getSimpleInteractionMessage(objectId)
             ?: Pair("안녕하세요", null)
-        
+
         return InteractResponse(
             type = "simple",
             message = message,
@@ -141,7 +141,7 @@ class ScenarioService(
      * Retrieves map data for a specific scenario.
      *
      * @param scenarioId Identifier of the scenario. Must be a positive value.
-     * @return [MapDataResponse] containing the scenario map data including layers, objects, and assets.
+     * @return [com.maechuri.mainserver.game.dto.MapDataResponse] containing the scenario map data including layers, objects, and assets.
      * @throws IllegalArgumentException if scenarioId is not positive
      */
     fun getMapData(scenarioId: Long): MapDataResponse {
