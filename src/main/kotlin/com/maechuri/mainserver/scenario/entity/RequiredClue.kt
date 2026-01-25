@@ -2,10 +2,10 @@ package com.maechuri.mainserver.scenario.entity
 
 import org.springframework.data.annotation.Id
 
-data class RequiredEvidence(
-    val scenarioId: Int,
+data class RequiredClue(
+    val scenarioId: Long,
     @Id
-    val evidenceId: Int,
+    val clueId: Long,
     val type: String,
     val minCount: Int
 )

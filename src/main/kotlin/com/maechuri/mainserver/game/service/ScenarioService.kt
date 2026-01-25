@@ -109,9 +109,11 @@ class ScenarioService(
             )
         }
 
+        // TODO: This part is not functional due to a missing method in AiClient.
         // Process user message through AI client
         val userMessage = Message("user", request.message)
-        val responseMessage = aiClient.generateResponse(objectId, request.message, history.conversation)
+        // val responseMessage = aiClient.generateResponse(objectId, request.message, history.conversation)
+        val responseMessage = "TODO: Implement AI response"
         val assistantMessage = Message("assistant", responseMessage)
 
         val newHistory = ConversationHistory(

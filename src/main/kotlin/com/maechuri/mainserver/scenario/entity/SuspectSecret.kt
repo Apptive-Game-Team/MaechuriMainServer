@@ -3,11 +3,11 @@ package com.maechuri.mainserver.scenario.entity
 import org.springframework.data.annotation.Id
 
 data class SuspectSecret(
-    val scenarioId: Int,
-    val suspectId: Int,
+    val scenarioId: Long,
+    val suspectId: Long,
     @Id
-    val secretId: Int,
+    val secretId: Long,
     val threshold: Int,
     val content: String,
-    val triggerEvidenceIds: List<Int> // Maps from JSONB type
+    val triggerClueIds: List<Long> // Maps from JSONB type
 )

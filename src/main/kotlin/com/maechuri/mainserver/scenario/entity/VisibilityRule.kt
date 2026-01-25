@@ -6,8 +6,8 @@ data class VisibilityRule(
     @Id
     val ruleId: Long,
     val scenarioId: Long,
-    val fromLocation: String,
-    val canSee: String,
-    val cannotSee: String,
-    val evidenceType: String,
+    val fromLocationId: Long,
+    val canSee: List<Long>,
+    val cannotSee: List<Long>,
+    val clueType: String,
 )
