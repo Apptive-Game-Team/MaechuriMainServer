@@ -6,7 +6,10 @@
 <body>
 <div th:replace="~{admin/layout :: layout(~{::.container})}">
     <div class="container">
-        <h1>Scenarios</h1>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Scenarios</h1>
+            <a href="/admin/scenarios/generate" class="btn btn-success">Generate New Scenario</a>
+        </div>
         <table class="table">
             <thead>
             <tr>

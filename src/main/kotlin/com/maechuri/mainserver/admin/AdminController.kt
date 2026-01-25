@@ -5,6 +5,7 @@ import com.maechuri.mainserver.game.entity.Tag
 import com.maechuri.mainserver.game.service.AssetService
 import com.maechuri.mainserver.scenario.provider.ScenarioProvider
 import com.maechuri.mainserver.scenario.repository.ScenarioRepository
+import com.maechuri.mainserver.scenario.service.ScenarioGenerationService
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Controller
@@ -17,7 +18,8 @@ import org.springframework.web.server.ServerWebExchange
 class AdminController(
     private val assetService: AssetService,
     private val scenarioProvider: ScenarioProvider,
-    private val scenarioRepository: ScenarioRepository
+    private val scenarioRepository: ScenarioRepository,
+    private val scenarioGenerationService: ScenarioGenerationService
 ) {
 
     @GetMapping("/", "")
@@ -29,6 +31,24 @@ class AdminController(
     suspend fun scenarios(model: Model): String {
         model.addAttribute("scenarios", scenarioRepository.findAll().collectList().awaitSingle())
         return "admin/scenarios"
+    }
+
+    @GetMapping("/scenarios/generate")
+    suspend fun showGenerateScenarioPage(model: Model): String {
+        model.addAttribute("tasks", scenarioGenerationService.getGenerationTasks().tasks)
+        return "admin/scenario-generation"
+    }
+
+    @PostMapping("/scenarios/generate")
+    suspend fun generateScenario(@RequestParam theme: String): String {
+        scenarioGenerationService.startGeneration(theme)
+        return "redirect:/admin/scenarios/generate"
+    }
+
+    @GetMapping("/scenarios/generations")
+    @ResponseBody
+    suspend fun getGenerations(): com.maechuri.mainserver.scenario.dto.ScenarioTaskListResponse {
+        return scenarioGenerationService.getGenerationTasks()
     }
 
     @GetMapping("/scenarios/{id}")
