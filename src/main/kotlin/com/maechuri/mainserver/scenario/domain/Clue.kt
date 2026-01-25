@@ -10,5 +10,4 @@ data class Clue(
 
     val logicExplanation: String,
     val isRedHerring: Boolean
-) {
-}
+)
