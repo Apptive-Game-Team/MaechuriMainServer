@@ -5,5 +5,4 @@ data class SuspectChatRequest(
     val scenarioId: Long,
     val suspectId: Long,
     val userMessage: String
-) {
-}
+)
