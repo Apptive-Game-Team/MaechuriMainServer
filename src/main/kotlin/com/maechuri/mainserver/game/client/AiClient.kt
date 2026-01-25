@@ -5,15 +5,16 @@ import com.maechuri.mainserver.game.dto.ClueChatResponse
 import com.maechuri.mainserver.game.dto.SuspectChatRequest
 import com.maechuri.mainserver.game.dto.SuspectChatResponse
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 
+@Component
 class AiClient(
-    webClientBuilder: WebClient.Builder,
     @Value("\${maechuri.ai-server.url}") aiServerUrl: String
 ) {
 
-    val webClient: WebClient = webClientBuilder.baseUrl(aiServerUrl).build()
+    val webClient: WebClient = WebClient.builder().baseUrl(aiServerUrl).build()
 
     suspend fun generateSuspectResponse(request: SuspectChatRequest): SuspectChatResponse {
         return webClient.post()
