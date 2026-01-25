@@ -1,7 +1,5 @@
 package com.maechuri.mainserver.scenario.domain
 
-import io.micrometer.core.instrument.config.validate.Validated
-
 class Suspect(
     val suspectId: Int,
     val name: String,
