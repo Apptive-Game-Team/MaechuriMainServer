@@ -1,4 +1,4 @@
-package com.maechuri.mainserver.scenario.dto
+package com.maechuri.mainserver.game.dto
 
 data class MapDataResponse(
     val createdDate: String,

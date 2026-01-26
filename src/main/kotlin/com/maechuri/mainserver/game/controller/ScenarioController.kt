@@ -1,10 +1,15 @@
-package com.maechuri.mainserver.scenario.controller
+package com.maechuri.mainserver.game.controller
 
-import com.maechuri.mainserver.scenario.dto.InteractRequest
-import com.maechuri.mainserver.scenario.dto.InteractResponse
-import com.maechuri.mainserver.scenario.dto.MapDataResponse
-import com.maechuri.mainserver.scenario.service.ScenarioService
-import org.springframework.web.bind.annotation.*
+import com.maechuri.mainserver.game.dto.InteractRequest
+import com.maechuri.mainserver.game.dto.InteractResponse
+import com.maechuri.mainserver.game.dto.MapDataResponse
+import com.maechuri.mainserver.game.service.ScenarioService
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/scenarios")
@@ -14,9 +19,9 @@ class ScenarioController(
 
     /**
      * Handles user interaction with a scenario object.
-     * 
+     *
      * Path variables are validated at the service layer to ensure positive values.
-     * 
+     *
      * @param scenarioId The scenario ID (validated: must be positive)
      * @param objectId The object ID (validated: must be positive)
      * @param request Optional interaction request with message and history
@@ -35,9 +40,9 @@ class ScenarioController(
 
     /**
      * Retrieves map data for a specific scenario.
-     * 
+     *
      * Path variable is validated at the service layer to ensure positive value.
-     * 
+     *
      * @param scenarioId The scenario ID (validated: must be positive)
      * @return Map data response with layers, objects, and assets
      * @throws IllegalArgumentException if scenarioId is not positive
@@ -49,7 +54,7 @@ class ScenarioController(
 
     /**
      * Retrieves today's scenario map data.
-     * 
+     *
      * @return Map data response for today's scenario
      */
     @GetMapping("/today/data/map")

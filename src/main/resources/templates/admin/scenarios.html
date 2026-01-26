@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Scenarios</title>
+</head>
+<body>
+<div th:replace="~{admin/layout :: layout(~{::.container})}">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Scenarios</h1>
+            <a href="/admin/scenarios/generate" class="btn btn-success">Generate New Scenario</a>
+        </div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Theme</th>
+                <th>Difficulty</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="scenario : ${scenarios}">
+                <td th:text="${scenario.scenarioId}"></td>
+                <td th:text="${scenario.theme}"></td>
+                <td th:text="${scenario.difficulty}"></td>
+                <td>
+                    <a th:href="@{/admin/scenarios/{id}(id=${scenario.scenarioId})}" class="btn btn-primary btn-sm">View</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

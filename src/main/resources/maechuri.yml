@@ -1,4 +1,6 @@
 maechuri:
+  ai-server:
+    url: ${MAECHURI_AI_URL:http://maechuri-ai:8000}
   jwt:
     public-key-path: ${JWT_PUBLIC_KEY_PATH}
     private-key-path: ${JWT_PRIVATE_KEY_PATH}

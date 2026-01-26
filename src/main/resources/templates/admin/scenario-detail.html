@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Scenario Details</title>
+</head>
+<body>
+<div th:replace="~{admin/layout :: layout(~{::#main-content})}">
+    <div id="main-content" class="container">
+        <h1 th:text="|Scenario: ${scenario.theme}|">Scenario Details</h1>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>General Information</h2>
+            </div>
+            <div class="card-body">
+                <p><strong>ID:</strong> <span th:text="${scenario.scenarioId}"></span></p>
+                <p><strong>Difficulty:</strong> <span th:text="${scenario.difficulty}"></span></p>
+                <p><strong>Theme:</strong> <span th:text="${scenario.theme}"></span></p>
+                <p><strong>Tone:</strong> <span th:text="${scenario.tone}"></span></p>
+                <p><strong>Language:</strong> <span th:text="${scenario.language}"></span></p>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Incident Details</h2>
+            </div>
+            <div class="card-body">
+                <p><strong>Type:</strong> <span th:text="${scenario.incidentType}"></span></p>
+                <p><strong>Summary:</strong> <span th:text="${scenario.incidentSummary}"></span></p>
+                <p><strong>Time:</strong> <span th:text="${scenario.incidentTimeStart}"></span> - <span th:text="${scenario.incidentTimeEnd}"></span></p>
+                <p><strong>Location:</strong> <span th:text="${scenario.incidentLocation}"></span></p>
+                <p><strong>Primary Object:</strong> <span th:text="${scenario.primaryObject}"></span></p>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Crime Details</h2>
+            </div>
+            <div class="card-body">
+                <p><strong>Time:</strong> <span th:text="${scenario.crimeTimeStart}"></span> - <span th:text="${scenario.crimeTimeEnd}"></span></p>
+                <p><strong>Location:</strong> <span th:text="${scenario.crimeLocation}"></span></p>
+                <p><strong>Method:</strong> <span th:text="${scenario.crimeMethod}"></span></p>
+            </div>
+        </div>
+
+        <!-- Locations -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Locations</h2>
+            </div>
+            <div class="card-body">
+                <div th:each="location : ${scenario.locations}" class="mb-3">
+                    <div class="card">
+                        <div class="card-header" th:text="${location.name}"></div>
+                        <div class="card-body">
+                            <p><strong>ID:</strong> <span th:text="${location.locationId}"></span></p>
+                            <h6>Access Rules</h6>
+                            <ul>
+                                <li th:each="rule : ${location.accessRules}" th:text="${rule.requires}"></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suspects -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Suspects</h2>
+            </div>
+            <div class="card-body">
+                <div th:replace="~{::suspectFragment(suspects=${scenario.suspects})}"></div>
+            </div>
+        </div>
+
+        <!-- Clues -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Clues</h2>
+            </div>
+            <div class="card-body">
+                <div th:replace="~{::clueFragment(clues=${scenario.clues})}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Suspect Fragment -->
+<div th:fragment="suspectFragment(suspects)">
+    <div th:each="suspect : ${suspects}" class="card mb-3">
+        <div class="card-header" th:text="|Suspect: ${suspect.name}|"></div>
+        <div class="card-body">
+            <p><strong>ID:</strong> <span th:text="${suspect.suspectId}"></span></p>
+            <p><strong>Role:</strong> <span th:text="${suspect.role}"></span></p>
+            <p><strong>Age:</strong> <span th:text="${suspect.age}"></span></p>
+            <p><strong>Gender:</strong> <span th:text="${suspect.gender}"></span></p>
+            <p><strong>Description:</strong> <span th:text="${suspect.description}"></span></p>
+            <p><strong>Is Culprit:</strong> <span th:text="${suspect.isCulprit}" class="badge" th:classappend="${suspect.isCulprit ? 'bg-danger' : 'bg-secondary'}"></span></p>
+            <p><strong>Motive:</strong> <span th:text="${suspect.motive}"></span></p>
+            <p><strong>Alibi:</strong> <span th:text="${suspect.alibiSummary}"></span></p>
+            <hr>
+            <h6>Secrets</h6>
+            <div th:each="secret : ${suspect.secrets}" class="mb-2">
+                <p><strong>Content:</strong> <span th:text="${secret.content}"></span> (Threshold: <span th:text="${secret.threshold}"></span>)</p>
+                <p><strong>Trigger Clues:</strong></p>
+                <ul>
+                    <li th:each="clue : ${secret.triggerClues}" th:text="|${clue.name} (ID: ${clue.clueId})|"></li>
+                </ul>
+            </div>
+            <hr>
+            <h6>Timelines</h6>
+            <table class="table table-sm">
+                <thead>
+                <tr>
+                    <th>Time Range</th>
+                    <th>Location</th>
+                    <th>Activity</th>
+                    <th>Provable</th>
+                    <th>Witness</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="timeline : ${suspect.timeLines}">
+                    <td th:text="${timeline.timeRange}"></td>
+                    <td th:text="${timeline.location.name}"></td>
+                    <td th:text="${timeline.activity}"></td>
+                    <td th:text="${timeline.canProve}"></td>
+                    <td th:text="${timeline.witness}"></td>
+                </tr>
+                </tbody>
+            </table>
+            <hr>
+            <h6>Critical Clues</h6>
+             <div th:replace="~{::clueFragment(clues=${suspect.criticalClues})}"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Clue Fragment -->
+<div th:fragment="clueFragment(clues)">
+    <div th:each="clue : ${clues}" class="card mb-3">
+        <div class="card-header" th:text="|Clue: ${clue.name}|"></div>
+        <div class="card-body">
+            <p><strong>ID:</strong> <span th:text="${clue.clueId}"></span></p>
+            <p><strong>Location:</strong> <span th:text="${clue.location.name}"></span></p>
+            <p><strong>Description:</strong> <span th:text="${clue.description}"></span></p>
+            <p><strong>Is Red Herring:</strong> <span th:text="${clue.isRedHerring}" class="badge" th:classappend="${clue.isRedHerring ? 'bg-warning' : 'bg-info'}"></span></p>
+            <p><strong>Logic Explanation:</strong> <span th:text="${clue.logicExplanation}"></span></p>
+            <h6>Related Suspects</h6>
+            <ul>
+                <li th:each="suspect : ${clue.relatedSuspects}" th:text="|${suspect.name} (ID: ${suspect.suspectId})|"></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

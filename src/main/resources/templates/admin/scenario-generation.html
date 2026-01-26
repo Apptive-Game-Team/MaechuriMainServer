@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Scenario Generation</title>
+    <style>
+        .status-FAILED {
+            color: red;
+            font-weight: bold;
+        }
+        .status-COMPLETED {
+            color: green;
+        }
+        .status-PROCESSING {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{admin/layout :: layout(~{::#main-content})}">
+    <div id="main-content" class="container">
+        <h1>Generate New Scenario</h1>
+        <form th:action="@{/admin/scenarios/generate}" method="post" class="row g-3 mb-4">
+            <div class="col-auto">
+                <label for="theme" class="visually-hidden">Theme</label>
+                <input type="text" class="form-control" id="theme" name="theme" placeholder="Enter theme (or 'random')">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Generate</button>
+            </div>
+        </form>
+
+        <h2>Generation Status</h2>
+        <button id="reload-btn" class="btn btn-secondary mb-3">Reload Status</button>
+
+        <table class="table" id="tasks-table">
+            <thead>
+            <tr>
+                <th>Key</th>
+                <th>Theme</th>
+                <th>Status</th>
+                <th>Scenario ID</th>
+                <th>Error</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="task : ${tasks}">
+                <td th:text="${task.key}"></td>
+                <td th:text="${task.theme}"></td>
+                <td><span th:text="${task.status}" th:class="|status-${task.status}|"></span></td>
+                <td th:text="${task.scenarioId}"></td>
+                <td th:text="${task.error}" class="status-FAILED"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.getElementById('reload-btn').addEventListener('click', function() {
+        fetch('/admin/scenarios/generations')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector('#tasks-table tbody');
+                tableBody.innerHTML = '';
+                data.tasks.forEach(task => {
+                    const row = `
+                        <tr>
+                            <td>${task.key}</td>
+                            <td>${task.theme}</td>
+                            <td><span class="${'status-' + task.status}">${task.status}</span></td>
+                            <td>${task.scenarioId || ''}</td>
+                            <td class="${'status-' + (task.status === 'FAILED' ? 'FAILED' : '')}">${task.error || ''}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            });
+    });
+</script>
+</body>
+</html>

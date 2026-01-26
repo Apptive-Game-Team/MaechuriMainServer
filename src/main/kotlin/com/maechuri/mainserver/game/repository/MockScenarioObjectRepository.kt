@@ -1,4 +1,4 @@
-package com.maechuri.mainserver.scenario.repository
+package com.maechuri.mainserver.game.repository
 
 import org.springframework.stereotype.Repository
 
