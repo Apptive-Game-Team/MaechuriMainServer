@@ -1,7 +1,12 @@
 package com.maechuri.mainserver.scenario.controller
 
 import com.maechuri.mainserver.MainServerApplication
+import com.maechuri.mainserver.game.client.AiClient
+import com.maechuri.mainserver.game.client.MapDataClient
+import com.maechuri.mainserver.game.client.MockMapDataClient
 import com.maechuri.mainserver.game.dto.InteractRequest
+import com.maechuri.mainserver.game.repository.ScenarioObjectRepository
+import com.maechuri.mainserver.game.service.HistoryService
 import com.maechuri.mainserver.game.service.ScenarioService
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
@@ -10,11 +15,31 @@ import org.springframework.boot.test.context.SpringBootTest
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+
+@Import(ScenarioControllerTest.TestConfiguration::class)
 @SpringBootTest(classes = [MainServerApplication::class])
-class ScenarioServiceTest {
+class ScenarioControllerTest {
 
     @Autowired
-    private lateinit var scenarioService: ScenarioService
+    private lateinit var historyService: HistoryService
+    @Autowired
+    private lateinit var objectRepository: ScenarioObjectRepository
+    @Autowired
+    private lateinit var aiClient: AiClient
+
+    private val scenarioService: ScenarioService by lazy {
+        ScenarioService(
+            historyService, objectRepository, MockMapDataClient(), aiClient
+        )
+    }
+
+    @org.springframework.boot.test.context.TestConfiguration
+    class TestConfiguration {
+        @Bean
+        fun mapDataClient(): MapDataClient = MockMapDataClient()
+    }
 
     @Test
     fun `interact with simple type returns simple response`() = runBlocking {
@@ -57,7 +82,7 @@ class ScenarioServiceTest {
         assertNotNull(response.map)
         assertEquals(2, response.map.layers.size)
         assertEquals(3, response.map.objects.size)
-        assertEquals(4, response.map.assets.size)
+        assertEquals(6, response.map.assets.size)
     }
 
     @Test
