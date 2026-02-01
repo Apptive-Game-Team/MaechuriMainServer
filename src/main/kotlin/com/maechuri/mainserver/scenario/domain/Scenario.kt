@@ -1,6 +1,5 @@
 package com.maechuri.mainserver.scenario.domain
 
-import com.maechuri.mainserver.scenario.domain.Clue
 import com.maechuri.mainserver.scenario.entity.Difficulty
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -16,20 +15,23 @@ data class Scenario(
     val incidentSummary: String,
     val incidentTimeStart: LocalTime,
     val incidentTimeEnd: LocalTime,
-    val incidentLocation: String,
+    val incidentLocationId: Long?,
     val primaryObject: String,
 
     val crimeTimeStart: LocalTime,
     val crimeTimeEnd: LocalTime,
-    val crimeLocation: String,
+    val crimeLocationId: Long?,
     val crimeMethod: String,
 
     val noSupernatural: Boolean,
     val noTimeTravel: Boolean,
 
-    val clues: List<Clue>,
-    val suspects: List<Suspect>,
-    val locations: List<Location>,
+    val createdAt: LocalDateTime,
 
-    val createdAt: LocalDateTime
+    var locations: List<Location> = emptyList(),
+    var clues: List<Clue> = emptyList(),
+    var suspects: List<Suspect> = emptyList(),
+    var facts: List<Fact> = emptyList(),
+    var maps: List<ScenarioMap> = emptyList(),
+    var contexts: List<ScenarioContext> = emptyList(),
 )
