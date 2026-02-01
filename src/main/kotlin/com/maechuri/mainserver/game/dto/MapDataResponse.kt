@@ -21,7 +21,7 @@ data class Layer(
 )
 
 data class MapObject(
-    val id: Long,
+    val id: String,
     val orderInLayer: Int,
     val name: String,
     val type: List<String>,
@@ -34,6 +34,6 @@ data class Position(
 )
 
 data class AssetInfo(
-    val id: Long,
+    val id: String,
     val imageUrl: String
 )

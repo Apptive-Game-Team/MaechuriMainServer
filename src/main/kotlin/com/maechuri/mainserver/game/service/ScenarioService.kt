@@ -146,12 +146,12 @@ class ScenarioService(
      * @return [com.maechuri.mainserver.game.dto.MapDataResponse] containing the scenario map data including layers, objects, and assets.
      * @throws IllegalArgumentException if scenarioId is not positive
      */
-    fun getMapData(scenarioId: Long): MapDataResponse {
+    suspend fun getMapData(scenarioId: Long): MapDataResponse {
         require(scenarioId > 0) { "scenarioId must be positive" }
         return mapDataClient.getMapData(scenarioId)
     }
 
-    fun getTodayMapData(): MapDataResponse {
+    suspend fun getTodayMapData(): MapDataResponse {
         return mapDataClient.getTodayMapData()
     }
 }

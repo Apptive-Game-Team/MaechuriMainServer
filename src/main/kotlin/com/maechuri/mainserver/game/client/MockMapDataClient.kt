@@ -8,14 +8,13 @@ import com.maechuri.mainserver.game.dto.MapObject
 import com.maechuri.mainserver.game.dto.Position
 import org.springframework.stereotype.Component
 
-@Component
 class MockMapDataClient : MapDataClient {
     
-    override fun getMapData(scenarioId: Long): MapDataResponse {
+    override suspend fun getMapData(scenarioId: Long): MapDataResponse {
         return createMockMapData(scenarioId)
     }
     
-    override fun getTodayMapData(): MapDataResponse {
+    override suspend fun getTodayMapData(): MapDataResponse {
         // In real implementation, this would fetch today's scenario from database
         return createMockMapData(1L)
     }
@@ -74,21 +73,21 @@ class MockMapDataClient : MapDataClient {
                 ),
                 objects = listOf(
                     MapObject(
-                        id = 100,
+                        id = "s:100",
                         orderInLayer = 3,
                         name = "요리사 1",
                         type = listOf("Interactable", "Non-Passable"),
                         position = Position(x = 2, y = 3)
                     ),
                     MapObject(
-                        id = 101,
+                        id = "s:101",
                         orderInLayer = 3,
                         name = "요리사 2",
                         type = listOf("Interactable", "Non-Passable"),
                         position = Position(x = 11, y = 3)
                     ),
                     MapObject(
-                        id = 102,
+                        id = "s:102",
                         orderInLayer = 3,
                         name = "요리사 3",
                         type = listOf("Interactable", "Non-Passable"),
@@ -97,27 +96,27 @@ class MockMapDataClient : MapDataClient {
                 ),
                 assets = listOf(
                     AssetInfo(
-                        id = 1,
+                        id = "1",
                         imageUrl = "https://s3.yunseong.dev/maechuri/objects/wood_floor.json"
                     ),
                     AssetInfo(
-                        id = 2,
+                        id = "2",
                         imageUrl = "https://s3.yunseong.dev/maechuri/objects/tile_floor.json"
                     ),
                     AssetInfo(
-                        id = 100,
+                        id = "100",
                         imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_1.json"
                     ),
                     AssetInfo(
-                        id = 101,
+                        id = "101",
                         imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_2.json"
                     ),
                     AssetInfo(
-                        id = 102,
+                        id = "102",
                         imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_3.json"
                     ),
                     AssetInfo(
-                        id = 999,
+                        id = "999",
                         imageUrl = "https://s3.yunseong.dev/maechuri/objects/player.json"
                     )
                 )
