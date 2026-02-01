@@ -9,16 +9,18 @@ import com.maechuri.mainserver.scenario.entity.Difficulty
 import com.maechuri.mainserver.scenario.provider.ScenarioProvider
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.anyLong
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.whenever
 import java.time.LocalDateTime
 import java.time.LocalTime
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class ScenarioMapDataClientTest {
 
-    private val scenarioProvider: ScenarioProvider = mock()
+    private val scenarioProvider: ScenarioProvider = mock() // Using mockito-kotlin's mock for now
     private val scenarioMapDataClient = ScenarioMapDataClient(scenarioProvider)
 
     @Test
@@ -57,7 +59,9 @@ class ScenarioMapDataClientTest {
             )
         )
 
-        whenever(scenarioProvider.findScenario(scenarioId)).thenReturn(mockScenario)
+        Mockito.`when`(scenarioProvider.findScenario(anyLong())).thenAnswer {
+            mockScenario
+        }
 
         // When
         val response = scenarioMapDataClient.getMapData(scenarioId)
@@ -68,14 +72,33 @@ class ScenarioMapDataClientTest {
         assertEquals("Test Theme", response.scenarioName)
 
         assertEquals(5, response.map.assets.size)
-        assertEquals("wall", response.map.assets[0].id)
-        assertEquals("floor", response.map.assets[1].id)
+        assertNotNull(response.map.assets.find { it.id == "s:101" })
+        assertEquals("https://s3.yunseong.dev/maechuri/objects/cook_2.json", response.map.assets.find { it.id == "s:101" }?.imageUrl)
+        assertNotNull(response.map.assets.find { it.id == "c:1" })
+        assertEquals("https://s3.yunseong.dev/maechuri/objects/cook_1.json", response.map.assets.find { it.id == "c:1" }?.imageUrl)
+        assertNotNull(response.map.assets.find { it.id == "p:1" })
+        assertEquals("https://s3.yunseong.dev/maechuri/objects/player.json", response.map.assets.find { it.id == "p:1" }?.imageUrl)
 
-        assertEquals(2, response.map.layers.size)
-        // Check if the room is drawn on the floor layer
-        assertEquals(2, response.map.layers[0].tileMap[2][2])
+        assertEquals(2, response.map.layers.size) // floor and wall layers
 
-        assertEquals(2, response.map.objects.size)
+        val floorLayer = response.map.layers.find { it.name == "floor" }
+        val wallLayer = response.map.layers.find { it.name == "wall" }
+        assertNotNull(floorLayer)
+        assertNotNull(wallLayer)
+
+        // Check room area (x=2 to 11, y=2 to 11)
+        for (y in 2 until 12) {
+            for (x in 2 until 12) {
+                assertEquals(2, floorLayer.tileMap[y][x], "Floor tile should be 2 inside room at ($x, $y)")
+                assertEquals(0, wallLayer.tileMap[y][x], "Wall tile should be 0 inside room at ($x, $y)")
+            }
+        }
+
+        // Check outside room area (e.g., (0,0) or (1,1))
+        assertEquals(0, floorLayer.tileMap[0][0], "Floor tile should be 0 outside room at (0,0)")
+        assertEquals(1, wallLayer.tileMap[0][0], "Wall tile should be 1 outside room at (0,0)")
+
+        assertEquals(3, response.map.objects.size) // Suspect, Clue, Player
         val suspectObject = response.map.objects.find { it.id == "s:101" }
         assertNotNull(suspectObject)
         assertEquals("Test Suspect", suspectObject.name)
@@ -87,5 +110,11 @@ class ScenarioMapDataClientTest {
         assertEquals("Test Clue", clueObject.name)
         assertEquals(5, clueObject.position.x)
         assertEquals(5, clueObject.position.y)
+
+        val playerObject = response.map.objects.find { it.id == "p:1" }
+        assertNotNull(playerObject)
+        assertEquals("플레이어", playerObject.name)
+        assertTrue(playerObject.position.x >= 0 && playerObject.position.x < 50, "Player X position out of bounds")
+        assertTrue(playerObject.position.y >= 0 && playerObject.position.y < 50, "Player Y position out of bounds")
     }
 }

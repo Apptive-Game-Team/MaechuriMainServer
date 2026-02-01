@@ -15,12 +15,9 @@ class ScenarioMapDataClient(
     override suspend fun getMapData(scenarioId: Long): MapDataResponse {
         val scenario = scenarioProvider.findScenario(scenarioId)
 
-        val assets = listOf(
-            AssetInfo(id = "wall", imageUrl = "https://s3.yunseong.dev/maechuri/objects/wood_floor.json"),
-            AssetInfo(id = "floor", imageUrl = "https://s3.yunseong.dev/maechuri/objects/tile_floor.json"),
-            AssetInfo(id = "clue", imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_1.json"),
-            AssetInfo(id = "suspect", imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_2.json"),
-            AssetInfo(id = "player", imageUrl = "https://s3.yunseong.dev/maechuri/objects/player.json")
+        val assets = mutableListOf(
+            AssetInfo(id = "1", imageUrl = "https://s3.yunseong.dev/maechuri/objects/wood_floor.json"),
+            AssetInfo(id = "2", imageUrl = "https://s3.yunseong.dev/maechuri/objects/tile_floor.json")
         )
 
         // For simplicity, we'll assume a fixed-size map for now.
@@ -32,56 +29,97 @@ class ScenarioMapDataClient(
             orderInLayer = 1,
             name = "floor",
             type = listOf("Non-Interactable", "Passable"),
-            tileMap = List(mapHeight) { MutableList(mapWidth) { 0 } }
+            tileMap = List(mapHeight) { MutableList(mapWidth) { 0 } } // Initialize with empty tiles
         )
 
         val wallLayer = Layer(
             orderInLayer = 2,
             name = "wall",
             type = listOf("Non-Interactable", "Non-Passable", "Blocks-Vision"),
-            tileMap = List(mapHeight) { MutableList(mapWidth) { 0 } }
+            tileMap = List(mapHeight) { MutableList(mapWidth) { 1 } } // Initialize with solid walls
         )
 
         // Populate layers based on ScenarioMap entities
         scenario.maps.forEach { scenarioMap ->
-            val layerToModify = if (scenarioMap.type == "room") floorLayer.tileMap else wallLayer.tileMap
-            val tileId = if (scenarioMap.type == "room") 2 else 1 // floor: 2, wall: 1 (as in mock)
             for (y in scenarioMap.y until (scenarioMap.y + scenarioMap.height)) {
                 for (x in scenarioMap.x until (scenarioMap.x + scenarioMap.width)) {
-                    if (y < mapHeight && x < mapWidth) {
-                        (layerToModify[y] as MutableList<Int>)[x] = tileId
+                    if (y >= 0 && y < mapHeight && x >= 0 && x < mapWidth) {
+                        // Fill floor layer with floor tiles in room/corridor areas
+                        (floorLayer.tileMap[y.toInt()] as MutableList<Int>)[x.toInt()] = 2 // floor tile
+
+                        // Clear wall layer in room/corridor areas
+                        (wallLayer.tileMap[y.toInt()] as MutableList<Int>)[x.toInt()] = 0 // empty space
                     }
                 }
             }
         }
 
         val objects = mutableListOf<MapObject>()
+        val occupiedCoordinates = mutableSetOf<Position>()
+
         scenario.suspects.forEach { suspect ->
             if (suspect.x != null && suspect.y != null) {
+                val objectId = "s:${suspect.suspectId}"
+                val pos = Position(x = suspect.x.toInt(), y = suspect.y.toInt())
                 objects.add(
                     MapObject(
-                        id = "s:${suspect.suspectId}",
+                        id = objectId,
                         orderInLayer = 3,
                         name = suspect.name,
                         type = listOf("Interactable", "Non-Passable"),
-                        position = Position(x = suspect.x.toInt(), y = suspect.y.toInt())
+                        position = pos
                     )
                 )
+                assets.add(AssetInfo(id = objectId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_2.json"))
+                occupiedCoordinates.add(pos)
             }
         }
 
         scenario.clues.forEach { clue ->
             if (clue.x != null && clue.y != null) {
+                val objectId = "c:${clue.clueId}"
+                val pos = Position(x = clue.x.toInt(), y = clue.y.toInt())
                 objects.add(
                     MapObject(
-                        id = "c:${clue.clueId}",
+                        id = objectId,
                         orderInLayer = 3,
                         name = clue.name,
                         type = listOf("Interactable", "Non-Passable"),
-                        position = Position(x = clue.x.toInt(), y = clue.y.toInt())
+                        position = pos
                     )
                 )
+                assets.add(AssetInfo(id = objectId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_1.json"))
+                occupiedCoordinates.add(pos)
             }
+        }
+
+        // Find available floor spots for the player
+        val availableSpots = mutableListOf<Position>()
+        floorLayer.tileMap.forEachIndexed { y, row ->
+            row.forEachIndexed { x, tileId ->
+                if (tileId == 2) { // '2' is the floor tile
+                    val pos = Position(x, y)
+                    if (!occupiedCoordinates.contains(pos)) {
+                        availableSpots.add(pos)
+                    }
+                }
+            }
+        }
+
+        // Add player at a random available spot
+        if (availableSpots.isNotEmpty()) {
+            val randomSpot = availableSpots.random()
+            val playerId = "p:1"
+            objects.add(
+                MapObject(
+                    id = playerId,
+                    orderInLayer = 3,
+                    name = "플레이어",
+                    type = listOf("Interactable", "Passable"), // Player is usually passable
+                    position = randomSpot
+                )
+            )
+            assets.add(AssetInfo(id = playerId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/player.json"))
         }
 
         return MapDataResponse(
