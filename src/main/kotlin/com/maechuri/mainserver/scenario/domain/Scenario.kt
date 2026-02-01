@@ -28,10 +28,10 @@ data class Scenario(
 
     val createdAt: LocalDateTime,
 
-    var locations: List<Location> = emptyList(),
-    var clues: List<Clue> = emptyList(),
-    var suspects: List<Suspect> = emptyList(),
-    var facts: List<Fact> = emptyList(),
-    var maps: List<ScenarioMap> = emptyList(),
-    var contexts: List<ScenarioContext> = emptyList(),
+    val locations: List<Location> = emptyList(),
+    val clues: List<Clue> = emptyList(),
+    val suspects: List<Suspect> = emptyList(),
+    val facts: List<Fact> = emptyList(),
+    val maps: List<ScenarioMap> = emptyList(),
+    val contexts: List<ScenarioContext> = emptyList(),
 )
