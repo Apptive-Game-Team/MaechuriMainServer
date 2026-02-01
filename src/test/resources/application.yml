@@ -5,6 +5,8 @@ spring:
     password:
 
 maechuri:
+  ai-server:
+    url: http://localhost:8000
   jwt:
     public-key-path: classpath:keys/public-key.pem
     private-key-path: classpath:keys/private-key.pem

@@ -1,7 +1,7 @@
 package com.maechuri.mainserver.scenario.domain
 
-class Suspect(
-    val suspectId: Int,
+data class Suspect(
+    val suspectId: Long,
     val name: String,
     val role: String,
     val age: Int,
@@ -13,8 +13,7 @@ class Suspect(
     val speechStyle: String,
     val emotionalTendency: String,
     val lyingPattern: String,
-
-    val criticalClues: List<Clue>,
-    val secrets: List<SuspectSecret>,
-    val timeLines: List<SuspectTimeline>
+    val criticalClueIds: List<Long>,
+    val x: Short?,
+    val y: Short?,
 )

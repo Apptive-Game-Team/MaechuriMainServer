@@ -26,6 +26,6 @@ class HistoryServiceTest {
 
         println(decodedHistory)
         println(objectId)
-        assertEquals(objectId, decodedHistory?.objectId)
+        assertEquals(objectId, decodedHistory.objectId)
     }
 }

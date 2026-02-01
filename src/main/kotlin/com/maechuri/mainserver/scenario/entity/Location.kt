@@ -1,10 +1,13 @@
 package com.maechuri.mainserver.scenario.entity
 
-import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Table
 
+@Table("location")
 data class Location(
-    @Id
-    val locationId: Long,
     val scenarioId: Long,
+    val locationId: Long,
     val name: String,
+    val canSee: String, // jsonb
+    val cannotSee: String, // jsonb
+    val accessRequires: String?,
 )
