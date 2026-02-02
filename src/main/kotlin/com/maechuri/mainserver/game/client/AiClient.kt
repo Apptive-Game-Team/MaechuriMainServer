@@ -13,7 +13,6 @@ class AiClient(
     val webClient: WebClient
 ) {
 
-
     suspend fun generateSuspectResponse(request: SuspectChatRequest): SuspectChatResponse {
         return webClient.post()
             .uri("/api/chat/suspect")
@@ -21,9 +20,9 @@ class AiClient(
             .retrieve()
             .awaitBody<SuspectChatResponse>()
     }
-    suspend fun generateClueResponse(request: ClueChatRequest): ClueChatResponse {
+    suspend fun generateDetectiveResponse(request: ClueChatRequest): ClueChatResponse {
         return webClient.post()
-            .uri("/api/chat/clue")
+            .uri("/api/chat/general")
             .bodyValue(request)
             .retrieve()
             .awaitBody<ClueChatResponse>()
