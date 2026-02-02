@@ -3,6 +3,7 @@ package com.maechuri.mainserver.game.controller
 import com.maechuri.mainserver.game.dto.InteractRequest
 import com.maechuri.mainserver.game.dto.InteractResponse
 import com.maechuri.mainserver.game.dto.MapDataResponse
+import com.maechuri.mainserver.game.service.InteractionService
 import com.maechuri.mainserver.game.service.ScenarioService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -14,7 +15,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/scenarios")
 class ScenarioController(
-    private val scenarioService: ScenarioService
+    private val scenarioService: ScenarioService,
+    private val interactionService: InteractionService
 ) {
 
     /**
@@ -31,11 +33,11 @@ class ScenarioController(
     @PostMapping("/{scenarioId}/interact/{objectId}")
     suspend fun interact(
         @PathVariable scenarioId: Long,
-        @PathVariable objectId: Long,
+        @PathVariable objectId: String,
         @RequestBody(required = false) request: InteractRequest?
     ): InteractResponse {
         val actualRequest = request ?: InteractRequest()
-        return scenarioService.handleInteraction(scenarioId, objectId, actualRequest)
+        return interactionService.handleInteraction(scenarioId, objectId, actualRequest)
     }
 
     /**
