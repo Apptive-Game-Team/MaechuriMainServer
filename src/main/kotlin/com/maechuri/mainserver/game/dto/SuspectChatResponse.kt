@@ -1,8 +1,8 @@
 package com.maechuri.mainserver.game.dto
 
 data class SuspectChatResponse(
-    val userMessage: String,
+    val user_message: String,
     val answer: String,
     val pressure: Int,
-    val pressureDelta: Int
+    val pressure_delta: Int
 )
