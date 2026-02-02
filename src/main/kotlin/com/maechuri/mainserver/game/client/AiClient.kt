@@ -15,14 +15,14 @@ class AiClient(
 
     suspend fun generateSuspectResponse(request: SuspectChatRequest): SuspectChatResponse {
         return webClient.post()
-            .uri("/api/chat/suspect")
+            .uri("/api/chats/suspect")
             .bodyValue(request)
             .retrieve()
             .awaitBody<SuspectChatResponse>()
     }
     suspend fun generateDetectiveResponse(request: ClueChatRequest): ClueChatResponse {
         return webClient.post()
-            .uri("/api/chat/general")
+            .uri("/api/chats/general")
             .bodyValue(request)
             .retrieve()
             .awaitBody<ClueChatResponse>()
