@@ -4,6 +4,8 @@ import com.maechuri.mainserver.game.dto.ClueChatRequest
 import com.maechuri.mainserver.game.dto.ClueChatResponse
 import com.maechuri.mainserver.game.dto.SuspectChatRequest
 import com.maechuri.mainserver.game.dto.SuspectChatResponse
+import com.maechuri.mainserver.game.dto.solve.AiSolveReqeust
+import com.maechuri.mainserver.game.dto.solve.AiSolveResponse
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
@@ -26,5 +28,13 @@ class AiClient(
             .bodyValue(request)
             .retrieve()
             .awaitBody<ClueChatResponse>()
+    }
+
+    suspend fun checkSolution(request: AiSolveReqeust): AiSolveResponse {
+        return webClient.post()
+            .uri("/api/scenarios/solve")
+            .bodyValue(request)
+            .retrieve()
+            .awaitBody<AiSolveResponse>()
     }
 }

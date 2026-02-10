@@ -3,6 +3,8 @@ package com.maechuri.mainserver.game.controller
 import com.maechuri.mainserver.game.dto.InteractRequest
 import com.maechuri.mainserver.game.dto.InteractResponse
 import com.maechuri.mainserver.game.dto.MapDataResponse
+import com.maechuri.mainserver.game.dto.solve.ClientSolveRequest
+import com.maechuri.mainserver.game.dto.solve.ClientSolveResponse
 import com.maechuri.mainserver.game.service.InteractionService
 import com.maechuri.mainserver.game.service.ScenarioService
 import org.springframework.web.bind.annotation.GetMapping
@@ -18,6 +20,14 @@ class ScenarioController(
     private val scenarioService: ScenarioService,
     private val interactionService: InteractionService
 ) {
+
+    @PostMapping("/{scenarioId}/solve")
+    suspend fun solve(
+        @PathVariable scenarioId: Long,
+        @RequestBody request: ClientSolveRequest
+    ): ClientSolveResponse {
+        return interactionService.solve(scenarioId, request)
+    }
 
     /**
      * Handles user interaction with a scenario object.
