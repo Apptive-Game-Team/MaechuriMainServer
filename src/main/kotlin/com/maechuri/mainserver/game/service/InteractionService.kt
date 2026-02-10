@@ -29,7 +29,7 @@ class InteractionService(
         val objectRealId = objectId.split(":").get(1).toLong()
         return when (objectId.get(0)) {
             's' -> handleSuspectInteraction(scenarioId, objectRealId, request)
-            'd' -> handleDetectiveInteraction(scenarioId, request)
+            'i' -> handleDetectiveInteraction(scenarioId, request)
             'c' -> handleClueInteraction(scenarioId, objectRealId)
             else -> throw IllegalArgumentException("Unknown object id type: $objectId")
         }
