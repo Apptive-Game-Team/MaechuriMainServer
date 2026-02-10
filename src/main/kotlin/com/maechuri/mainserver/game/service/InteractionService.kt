@@ -5,6 +5,10 @@ import com.maechuri.mainserver.game.dto.ClueChatRequest
 import com.maechuri.mainserver.game.dto.InteractRequest
 import com.maechuri.mainserver.game.dto.InteractResponse
 import com.maechuri.mainserver.game.dto.SuspectChatRequest
+import com.maechuri.mainserver.game.dto.solve.AiSolveReqeust
+import com.maechuri.mainserver.game.dto.solve.AiSolveResponse
+import com.maechuri.mainserver.game.dto.solve.ClientSolveRequest
+import com.maechuri.mainserver.game.dto.solve.ClientSolveResponse
 import com.maechuri.mainserver.scenario.repository.ClueRepository
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.stereotype.Service
@@ -15,11 +19,17 @@ class InteractionService(
     private val aiClient: AiClient
 ) {
 
+    suspend fun solve(scenarioId: Long, clientSolveRequest: ClientSolveRequest): ClientSolveResponse {
+        return aiClient.checkSolution(
+            AiSolveReqeust.from(scenarioId, clientSolveRequest)
+        ).toNormalize()
+    }
+
     suspend fun handleInteraction(scenarioId: Long, objectId: String, request: InteractRequest): InteractResponse {
         val objectRealId = objectId.split(":").get(1).toLong()
         return when (objectId.get(0)) {
             's' -> handleSuspectInteraction(scenarioId, objectRealId, request)
-            'd' -> handleDetectiveInteraction(scenarioId, request)
+            'i' -> handleDetectiveInteraction(scenarioId, request)
             'c' -> handleClueInteraction(scenarioId, objectRealId)
             else -> throw IllegalArgumentException("Unknown object id type: $objectId")
         }
