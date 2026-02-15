@@ -234,6 +234,57 @@ class RecordServiceTest {
     }
 
     @Test
+    fun `getAllInteractedRecords skips missing records gracefully`() = runBlocking {
+        val scenarioId = 1L
+        val gameSessionId = "test-session-with-missing"
+        
+        val sessionRecords = listOf(
+            GameSessionRecord(1L, gameSessionId, "c", 1L, LocalDateTime.now()),
+            GameSessionRecord(2L, gameSessionId, "s", 999L, LocalDateTime.now()), // Missing suspect
+            GameSessionRecord(3L, gameSessionId, "f", 102L, LocalDateTime.now())
+        )
+        
+        val clue = Clue(
+            scenarioId = scenarioId,
+            clueId = 1L,
+            name = "피 묻은 칼",
+            locationId = 3,
+            description = "주방 싱크대에서 발견된 피 묻은 식칼.",
+            logicExplanation = "범행에 사용된 흉기일 가능성이 높습니다.",
+            decodedAnswer = null,
+            isRedHerring = false,
+            relatedFactIds = "[]",
+            x = 26,
+            y = 6
+        )
+        
+        val fact = Fact(
+            scenarioId = scenarioId,
+            suspectId = 102,
+            factId = 102L,
+            threshold = 5,
+            type = "secret",
+            content = """{"secret": "빅토리아 부인은 최근 거액의 도박 빚을 졌습니다."}"""
+        )
+        
+        whenever(gameSessionRecordRepository.findAllByGameSessionId(gameSessionId))
+            .thenReturn(Flux.fromIterable(sessionRecords))
+        whenever(clueRepository.findByScenarioIdAndClueId(scenarioId, 1L))
+            .thenReturn(Mono.just(clue))
+        whenever(suspectRepository.findByScenarioIdAndSuspectId(scenarioId, 999L))
+            .thenReturn(Mono.empty()) // Missing suspect
+        whenever(factRepository.findByScenarioIdAndFactId(scenarioId, 102L))
+            .thenReturn(Mono.just(fact))
+        
+        val result = recordService.getAllInteractedRecords(scenarioId, gameSessionId)
+        
+        // Should have 2 records, skipping the missing suspect
+        assertEquals(2, result.records.size)
+        assertEquals("피 묻은 칼", result.records[0].name)
+        assertEquals("Fact #102", result.records[1].name)
+    }
+
+    @Test
     fun `getAllInteractedRecords throws exception for blank gameSessionId`() = runBlocking {
         val exception = assertThrows<IllegalArgumentException> {
             recordService.getAllInteractedRecords(1L, "")

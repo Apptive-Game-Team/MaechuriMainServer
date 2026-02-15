@@ -10,7 +10,10 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
+import mu.KotlinLogging
 import org.springframework.stereotype.Service
+
+private val logger = KotlinLogging.logger {}
 
 @Service
 class RecordService(
@@ -69,8 +72,13 @@ class RecordService(
                     "c" -> fetchClue(scenarioId, sessionRecord.recordId)
                     else -> null
                 }
+            } catch (e: NoSuchElementException) {
+                // Record was deleted or doesn't exist
+                logger.warn { "Record not found: tag=${sessionRecord.recordTag}, id=${sessionRecord.recordId}, scenarioId=$scenarioId" }
+                null
             } catch (e: Exception) {
-                // Skip records that can't be fetched (e.g., deleted or invalid)
+                // Unexpected error, log for debugging
+                logger.error(e) { "Error fetching record: tag=${sessionRecord.recordTag}, id=${sessionRecord.recordId}, scenarioId=$scenarioId" }
                 null
             }
         }
