@@ -57,7 +57,7 @@ class ScenarioController(
     ): InteractResponse {
         val actualRequest = request ?: InteractRequest()
         val gameSessionId = exchange.getAttribute<String>(GameSessionFilter.GAME_SESSION_ATTRIBUTE_NAME)
-            ?: throw IllegalStateException("Game session ID not found")
+            ?: throw IllegalStateException("Game session ID not found in exchange attributes. Ensure GameSessionFilter is properly configured.")
         return interactionService.handleInteraction(scenarioId, objectId, actualRequest, gameSessionId)
     }
 
@@ -76,7 +76,7 @@ class ScenarioController(
         exchange: ServerWebExchange
     ): RecordsListResponse {
         val gameSessionId = exchange.getAttribute<String>(GameSessionFilter.GAME_SESSION_ATTRIBUTE_NAME)
-            ?: throw IllegalStateException("Game session ID not found")
+            ?: throw IllegalStateException("Game session ID not found in exchange attributes. Ensure GameSessionFilter is properly configured.")
         return recordService.getAllInteractedRecords(scenarioId, gameSessionId)
     }
 

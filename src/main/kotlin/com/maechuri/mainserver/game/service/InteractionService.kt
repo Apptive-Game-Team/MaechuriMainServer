@@ -33,12 +33,20 @@ class InteractionService(
     }
 
     suspend fun handleInteraction(scenarioId: Long, objectId: String, request: InteractRequest, gameSessionId: String): InteractResponse {
-        val objectRealId = objectId.split(":").get(1).toLong()
-        return when (objectId.get(0)) {
+        require(objectId.isNotEmpty()) { "Object ID cannot be empty" }
+        
+        val parts = objectId.split(":")
+        require(parts.size == 2) { "Object ID must be in format 'tag:id' (e.g., 's:101', 'c:1')" }
+        
+        val tag = parts[0]
+        val objectRealId = parts[1].toLongOrNull() 
+            ?: throw IllegalArgumentException("Object ID must contain a valid number after the colon")
+        
+        return when (tag.firstOrNull()) {
             's' -> handleSuspectInteraction(scenarioId, objectRealId, request, gameSessionId)
             'i' -> handleDetectiveInteraction(scenarioId, request, gameSessionId)
             'c' -> handleClueInteraction(scenarioId, objectRealId, gameSessionId)
-            else -> throw IllegalArgumentException("Unknown object id type: $objectId")
+            else -> throw IllegalArgumentException("Unknown object id type: $tag. Must be 's', 'i', or 'c'")
         }
     }
 

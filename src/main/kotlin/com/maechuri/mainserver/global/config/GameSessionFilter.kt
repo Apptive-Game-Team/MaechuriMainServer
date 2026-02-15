@@ -24,7 +24,7 @@ class GameSessionFilter : WebFilter {
         val cookies = exchange.request.cookies
         val existingSessionId = cookies.getFirst(GAME_SESSION_COOKIE_NAME)?.value
         
-        val sessionId = if (existingSessionId.isNullOrBlank()) {
+        val sessionId = if (existingSessionId.isNullOrEmpty() || !isValidUUID(existingSessionId)) {
             // Generate new session ID
             val newSessionId = UUID.randomUUID().toString()
             
@@ -48,5 +48,14 @@ class GameSessionFilter : WebFilter {
         exchange.attributes[GAME_SESSION_ATTRIBUTE_NAME] = sessionId
         
         return chain.filter(exchange)
+    }
+    
+    private fun isValidUUID(value: String): Boolean {
+        return try {
+            UUID.fromString(value)
+            true
+        } catch (e: IllegalArgumentException) {
+            false
+        }
     }
 }
