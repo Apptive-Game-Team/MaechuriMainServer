@@ -3,9 +3,11 @@ package com.maechuri.mainserver.game.controller
 import com.maechuri.mainserver.game.dto.InteractRequest
 import com.maechuri.mainserver.game.dto.InteractResponse
 import com.maechuri.mainserver.game.dto.MapDataResponse
+import com.maechuri.mainserver.game.dto.RecordResponse
 import com.maechuri.mainserver.game.dto.solve.ClientSolveRequest
 import com.maechuri.mainserver.game.dto.solve.ClientSolveResponse
 import com.maechuri.mainserver.game.service.InteractionService
+import com.maechuri.mainserver.game.service.RecordService
 import com.maechuri.mainserver.game.service.ScenarioService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -18,7 +20,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/scenarios")
 class ScenarioController(
     private val scenarioService: ScenarioService,
-    private val interactionService: InteractionService
+    private val interactionService: InteractionService,
+    private val recordService: RecordService
 ) {
 
     @PostMapping("/{scenarioId}/solve")
@@ -48,6 +51,22 @@ class ScenarioController(
     ): InteractResponse {
         val actualRequest = request ?: InteractRequest()
         return interactionService.handleInteraction(scenarioId, objectId, actualRequest)
+    }
+
+    /**
+     * Retrieves a specific record (fact, suspect, or clue) by its composite ID.
+     *
+     * @param scenarioId The scenario ID (validated: must be positive)
+     * @param recordId The record ID in format "tag:id" (e.g., "f:1" for fact, "s:101" for suspect, "c:1" for clue)
+     * @return Record response with name and content
+     * @throws IllegalArgumentException if recordId format is invalid or record not found
+     */
+    @GetMapping("/{scenarioId}/records/{recordId}")
+    suspend fun getRecord(
+        @PathVariable scenarioId: Long,
+        @PathVariable recordId: String
+    ): RecordResponse {
+        return recordService.getRecord(scenarioId, recordId)
     }
 
     /**
