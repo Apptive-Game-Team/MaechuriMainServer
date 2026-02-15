@@ -9,6 +9,7 @@ data class GameSessionRecord(
     @Id
     val id: Long? = null,
     val gameSessionId: String,
+    val scenarioId: Long?,
     val recordTag: String,
     val recordId: Long,
     val interactedAt: LocalDateTime = LocalDateTime.now()
