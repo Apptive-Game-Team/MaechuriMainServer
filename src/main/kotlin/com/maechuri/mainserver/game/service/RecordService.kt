@@ -8,9 +8,11 @@ import com.maechuri.mainserver.scenario.repository.FactRepository
 import com.maechuri.mainserver.scenario.repository.SuspectRepository
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import mu.KotlinLogging
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
+import org.springframework.web.server.ResponseStatusException
 
 private val logger = KotlinLogging.logger {}
 
@@ -28,7 +30,8 @@ class RecordService(
      * @param scenarioId The scenario identifier
      * @param recordId The record identifier in format "tag:id" (e.g., "f:1", "s:101", "c:1")
      * @return RecordResponse containing name and content
-     * @throws IllegalArgumentException if recordId format is invalid or record not found
+     * @throws ResponseStatusException with 404 status if record not found
+     * @throws IllegalArgumentException if recordId format is invalid
      */
     suspend fun getRecord(scenarioId: Long, recordId: String): RecordResponse {
         require(scenarioId > 0) { "scenarioId must be positive" }
@@ -71,7 +74,7 @@ class RecordService(
                     "c" -> fetchClue(scenarioId, sessionRecord.recordId)
                     else -> null
                 }
-            } catch (e: NoSuchElementException) {
+            } catch (e: ResponseStatusException) {
                 // Record was deleted or doesn't exist
                 logger.warn { "Record not found: tag=${sessionRecord.recordTag}, id=${sessionRecord.recordId}, scenarioId=$scenarioId" }
                 null
@@ -87,7 +90,8 @@ class RecordService(
     
     private suspend fun fetchFact(scenarioId: Long, factId: Long): RecordResponse {
         val fact = factRepository.findByScenarioIdAndFactId(scenarioId, factId)
-            .awaitSingle()
+            .awaitSingleOrNull()
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Fact not found: scenarioId=$scenarioId, factId=$factId")
         return RecordResponse(
             id = "f:${factId}",
             name = "Fact #$factId",
@@ -97,7 +101,8 @@ class RecordService(
     
     private suspend fun fetchSuspect(scenarioId: Long, suspectId: Long): RecordResponse {
         val suspect = suspectRepository.findByScenarioIdAndSuspectId(scenarioId, suspectId)
-            .awaitSingle()
+            .awaitSingleOrNull()
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Suspect not found: scenarioId=$scenarioId, suspectId=$suspectId")
         return RecordResponse(
             id = "s:${suspectId}",
             name = suspect.name,
@@ -107,7 +112,8 @@ class RecordService(
     
     private suspend fun fetchClue(scenarioId: Long, clueId: Long): RecordResponse {
         val clue = clueRepository.findByScenarioIdAndClueId(scenarioId, clueId)
-            .awaitSingle()
+            .awaitSingleOrNull()
+            ?: throw ResponseStatusException(HttpStatus.NOT_FOUND, "Clue not found: scenarioId=$scenarioId, clueId=$clueId")
         return RecordResponse(
             id = "c:${clueId}",
             name = clue.name,

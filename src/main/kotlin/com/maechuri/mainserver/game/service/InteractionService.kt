@@ -33,6 +33,7 @@ class InteractionService(
     }
 
     suspend fun handleInteraction(scenarioId: Long, objectId: String, request: InteractRequest, gameSessionId: String): InteractResponse {
+        require(scenarioId > 0) { "scenarioId must be positive" }
         require(objectId.isNotEmpty()) { "Object ID cannot be empty" }
         
         val parts = objectId.split(":")
@@ -42,10 +43,10 @@ class InteractionService(
         val objectRealId = parts[1].toLongOrNull() 
             ?: throw IllegalArgumentException("Object ID must contain a valid number after the colon")
         
-        return when (tag.firstOrNull()) {
-            's' -> handleSuspectInteraction(scenarioId, objectRealId, request, gameSessionId)
-            'i' -> handleDetectiveInteraction(scenarioId, request, gameSessionId)
-            'c' -> handleClueInteraction(scenarioId, objectRealId, gameSessionId)
+        return when (tag) {
+            "s" -> handleSuspectInteraction(scenarioId, objectRealId, request, gameSessionId)
+            "i" -> handleDetectiveInteraction(scenarioId, request, gameSessionId)
+            "c" -> handleClueInteraction(scenarioId, objectRealId, gameSessionId)
             else -> throw IllegalArgumentException("Unknown object id type: $tag. Must be 's', 'i', or 'c'")
         }
     }
@@ -81,11 +82,11 @@ class InteractionService(
         )
 
         // Save suspect interaction to records
-        saveRecord(gameSessionId, "s", suspectId)
+        saveRecord(gameSessionId, scenarioId, "s", suspectId)
         
         // Save revealed facts if any
         responseMessage.revealed_fact_ids?.forEach { factId ->
-            saveRecord(gameSessionId, "f", factId)
+            saveRecord(gameSessionId, scenarioId, "f", factId)
         }
 
         return InteractResponse(
@@ -102,7 +103,7 @@ class InteractionService(
             .awaitSingle()
 
         // Save clue interaction to records
-        saveRecord(gameSessionId, "c", objectId)
+        saveRecord(gameSessionId, scenarioId, "c", objectId)
 
         return InteractResponse(
             type = "simple",
@@ -111,22 +112,23 @@ class InteractionService(
         )
     }
 
-    private suspend fun saveRecord(gameSessionId: String, recordTag: String, recordId: Long) {
+    private suspend fun saveRecord(gameSessionId: String, scenarioId: Long, recordTag: String, recordId: Long) {
         try {
             val record = GameSessionRecord(
                 gameSessionId = gameSessionId,
+                scenarioId = scenarioId,
                 recordTag = recordTag,
                 recordId = recordId,
                 interactedAt = LocalDateTime.now()
             )
             gameSessionRecordRepository.save(record).awaitSingle()
-            logger.debug { "Saved record: sessionId=$gameSessionId, tag=$recordTag, id=$recordId" }
+            logger.debug { "Saved record: sessionId=$gameSessionId, scenarioId=$scenarioId, tag=$recordTag, id=$recordId" }
         } catch (e: org.springframework.dao.DataIntegrityViolationException) {
             // Record already exists (duplicate key), which is expected behavior
-            logger.debug { "Record already exists: sessionId=$gameSessionId, tag=$recordTag, id=$recordId" }
+            logger.debug { "Record already exists: sessionId=$gameSessionId, scenarioId=$scenarioId, tag=$recordTag, id=$recordId" }
         } catch (e: Exception) {
             // Unexpected error, log as warning
-            logger.warn(e) { "Failed to save record: sessionId=$gameSessionId, tag=$recordTag, id=$recordId" }
+            logger.warn(e) { "Failed to save record: sessionId=$gameSessionId, scenarioId=$scenarioId, tag=$recordTag, id=$recordId" }
         }
     }
 }

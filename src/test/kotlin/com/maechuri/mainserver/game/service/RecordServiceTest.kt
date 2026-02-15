@@ -156,9 +156,9 @@ class RecordServiceTest {
         val gameSessionId = "test-session-123"
         
         val sessionRecords = listOf(
-            GameSessionRecord(1L, gameSessionId, "c", 1L, LocalDateTime.now()),
-            GameSessionRecord(2L, gameSessionId, "s", 101L, LocalDateTime.now()),
-            GameSessionRecord(3L, gameSessionId, "f", 102L, LocalDateTime.now())
+            GameSessionRecord(1L, gameSessionId, scenarioId, "c", 1L, LocalDateTime.now()),
+            GameSessionRecord(2L, gameSessionId, scenarioId, "s", 101L, LocalDateTime.now()),
+            GameSessionRecord(3L, gameSessionId, scenarioId, "f", 102L, LocalDateTime.now())
         )
         
         val clue = Clue(
@@ -239,9 +239,9 @@ class RecordServiceTest {
         val gameSessionId = "test-session-with-missing"
         
         val sessionRecords = listOf(
-            GameSessionRecord(1L, gameSessionId, "c", 1L, LocalDateTime.now()),
-            GameSessionRecord(2L, gameSessionId, "s", 999L, LocalDateTime.now()), // Missing suspect
-            GameSessionRecord(3L, gameSessionId, "f", 102L, LocalDateTime.now())
+            GameSessionRecord(1L, gameSessionId, scenarioId, "c", 1L, LocalDateTime.now()),
+            GameSessionRecord(2L, gameSessionId, scenarioId, "s", 999L, LocalDateTime.now()), // Missing suspect
+            GameSessionRecord(3L, gameSessionId, scenarioId, "f", 102L, LocalDateTime.now())
         )
         
         val clue = Clue(
