@@ -32,22 +32,22 @@ class InteractionService(
         ).toNormalize()
     }
 
-    suspend fun handleInteraction(scenarioId: Long, objectId: String, request: InteractRequest): InteractResponse {
+    suspend fun handleInteraction(scenarioId: Long, objectId: String, request: InteractRequest, gameSessionId: String): InteractResponse {
         val objectRealId = objectId.split(":").get(1).toLong()
         return when (objectId.get(0)) {
-            's' -> handleSuspectInteraction(scenarioId, objectRealId, request)
-            'i' -> handleDetectiveInteraction(scenarioId, request)
-            'c' -> handleClueInteraction(scenarioId, objectRealId, request.gameSessionId)
+            's' -> handleSuspectInteraction(scenarioId, objectRealId, request, gameSessionId)
+            'i' -> handleDetectiveInteraction(scenarioId, request, gameSessionId)
+            'c' -> handleClueInteraction(scenarioId, objectRealId, gameSessionId)
             else -> throw IllegalArgumentException("Unknown object id type: $objectId")
         }
     }
 
-    private suspend fun handleDetectiveInteraction(scenarioId: Long, request: InteractRequest): InteractResponse {
+    private suspend fun handleDetectiveInteraction(scenarioId: Long, request: InteractRequest, gameSessionId: String): InteractResponse {
         val userMessage = request.message ?: "안녕하세요"
 
         val responseMessage = aiClient.generateDetectiveResponse(
             ClueChatRequest(
-                "default",
+                gameSessionId,
                 scenarioId,
                 userMessage
             )
@@ -59,27 +59,25 @@ class InteractionService(
         )
     }
 
-    private suspend fun handleSuspectInteraction(scenarioId: Long, suspectId: Long, request: InteractRequest): InteractResponse {
+    private suspend fun handleSuspectInteraction(scenarioId: Long, suspectId: Long, request: InteractRequest, gameSessionId: String): InteractResponse {
 
         val userMessage = request.message ?: "안녕하세요"
 
         val responseMessage = aiClient.generateSuspectResponse(
             SuspectChatRequest(
-                "default",
+                gameSessionId,
                 scenarioId,
                 suspectId,
                 userMessage
             )
         )
 
-        // Save suspect interaction to records if gameSessionId is provided
-        request.gameSessionId?.let { sessionId ->
-            saveRecord(sessionId, "s", suspectId)
-            
-            // Save revealed facts if any
-            responseMessage.revealed_fact_ids?.forEach { factId ->
-                saveRecord(sessionId, "f", factId)
-            }
+        // Save suspect interaction to records
+        saveRecord(gameSessionId, "s", suspectId)
+        
+        // Save revealed facts if any
+        responseMessage.revealed_fact_ids?.forEach { factId ->
+            saveRecord(gameSessionId, "f", factId)
         }
 
         return InteractResponse(
@@ -91,14 +89,12 @@ class InteractionService(
         )
     }
 
-    private suspend fun handleClueInteraction(scenarioId: Long, objectId: Long, gameSessionId: String?): InteractResponse {
+    private suspend fun handleClueInteraction(scenarioId: Long, objectId: Long, gameSessionId: String): InteractResponse {
         val clue = clueRepository.findByScenarioIdAndClueId(scenarioId, objectId)
             .awaitSingle()
 
-        // Save clue interaction to records if gameSessionId is provided
-        gameSessionId?.let { sessionId ->
-            saveRecord(sessionId, "c", objectId)
-        }
+        // Save clue interaction to records
+        saveRecord(gameSessionId, "c", objectId)
 
         return InteractResponse(
             type = "simple",

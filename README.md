@@ -2,11 +2,22 @@
 
 ## API Documentation
 
+### Game Session Management
+
+The server automatically manages game sessions using cookies. When a client makes their first request, a `game_session_id` cookie is automatically created with a UUID value. This cookie is used to track interactions and maintain game state across requests.
+
+**Cookie Details:**
+- Name: `game_session_id`
+- Type: UUID (automatically generated)
+- Max Age: 30 days
+- HttpOnly: true
+- SameSite: Lax
+
 ### Interaction API
 
 #### Interact with Scenario Objects
 
-Interact with suspects, clues, or detective in a scenario. Automatically saves interaction records when `gameSessionId` is provided.
+Interact with suspects, clues, or detective in a scenario. Game session is automatically tracked via cookies.
 
 **Endpoint:** `POST /api/scenarios/{scenarioId}/interact/{objectId}`
 
@@ -20,8 +31,7 @@ Interact with suspects, clues, or detective in a scenario. Automatically saves i
 **Request Body:**
 ```json
 {
-  "message": "안녕하세요",
-  "gameSessionId": "session-123"
+  "message": "안녕하세요"
 }
 ```
 
@@ -46,10 +56,10 @@ Interact with suspects, clues, or detective in a scenario. Automatically saves i
 ```
 
 **Automatic Record Saving:**
-- When `gameSessionId` is provided in the request:
-  - Suspect interactions (`s:n`) are saved to the record table
-  - Clue interactions (`c:n`) are saved to the record table
-  - Revealed facts from suspect conversations are automatically saved
+- Game session is tracked via `game_session_id` cookie (automatically created on first request)
+- Suspect interactions (`s:n`) are saved to the record table
+- Clue interactions (`c:n`) are saved to the record table
+- Revealed facts from suspect conversations are automatically saved
   
 ---
 
@@ -57,15 +67,12 @@ Interact with suspects, clues, or detective in a scenario. Automatically saves i
 
 #### Get All Interacted Records
 
-Retrieve all records that have been interacted with in a game session.
+Retrieve all records that have been interacted with in the current game session (tracked via cookie).
 
-**Endpoint:** `GET /api/scenarios/{scenarioId}/records?gameSessionId={gameSessionId}`
+**Endpoint:** `GET /api/scenarios/{scenarioId}/records`
 
 **Path Parameters:**
 - `scenarioId` (Long): The ID of the scenario
-
-**Query Parameters:**
-- `gameSessionId` (String): The game session identifier
 
 **Response:**
 ```json
@@ -85,11 +92,12 @@ Retrieve all records that have been interacted with in a game session.
 
 **Example Request:**
 ```
-GET /api/scenarios/1/records?gameSessionId=session-123
+GET /api/scenarios/1/records
 ```
 
 **Error Responses:**
-- `400 Bad Request`: Invalid scenarioId or blank gameSessionId
+- `400 Bad Request`: Invalid scenarioId
+- `500 Internal Server Error`: Game session ID not found (cookie missing)
 
 ---
 
