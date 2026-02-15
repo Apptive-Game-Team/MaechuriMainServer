@@ -9,7 +9,6 @@ import com.maechuri.mainserver.scenario.repository.SuspectRepository
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
-import kotlinx.coroutines.reactor.awaitSingleOrNull
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 
