@@ -30,10 +30,12 @@ ALTER TABLE asset_tag
 CREATE TABLE IF NOT EXISTS game_session_record (
     id BIGSERIAL PRIMARY KEY,
     game_session_id VARCHAR(255) NOT NULL,
+    scenario_id BIGINT NOT NULL,
     record_tag VARCHAR(10) NOT NULL,
     record_id BIGINT NOT NULL,
     interacted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(game_session_id, record_tag, record_id)
+    UNIQUE(game_session_id, scenario_id, record_tag, record_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_game_session_record_session_id ON game_session_record(game_session_id);
+CREATE INDEX IF NOT EXISTS idx_game_session_record_session_scenario ON game_session_record(game_session_id, scenario_id);
