@@ -66,18 +66,90 @@ class RecordService(
             .asFlow()
             .toList()
         
+        // Group session records by tag to batch fetch
+        val factIds = sessionRecords.filter { it.recordTag == "f" }.map { it.recordId }.toSet()
+        val suspectIds = sessionRecords.filter { it.recordTag == "s" }.map { it.recordId }.toSet()
+        val clueIds = sessionRecords.filter { it.recordTag == "c" }.map { it.recordId }.toSet()
+        
+        // Batch fetch all records by type
+        val facts = if (factIds.isNotEmpty()) {
+            factRepository.findAllByScenarioId(scenarioId)
+                .asFlow()
+                .toList()
+                .filter { it.factId in factIds }
+                .associateBy { it.factId }
+        } else {
+            emptyMap()
+        }
+        
+        val suspects = if (suspectIds.isNotEmpty()) {
+            suspectRepository.findAllByScenarioId(scenarioId)
+                .asFlow()
+                .toList()
+                .filter { it.suspectId in suspectIds }
+                .associateBy { it.suspectId }
+        } else {
+            emptyMap()
+        }
+        
+        val clues = if (clueIds.isNotEmpty()) {
+            clueRepository.findAllByScenarioId(scenarioId)
+                .asFlow()
+                .toList()
+                .filter { it.clueId in clueIds }
+                .associateBy { it.clueId }
+        } else {
+            emptyMap()
+        }
+        
+        // Map session records to responses in order
         val records = sessionRecords.mapNotNull { sessionRecord ->
             try {
                 when (sessionRecord.recordTag) {
-                    "f" -> fetchFact(scenarioId, sessionRecord.recordId)
-                    "s" -> fetchSuspect(scenarioId, sessionRecord.recordId)
-                    "c" -> fetchClue(scenarioId, sessionRecord.recordId)
-                    else -> null
+                    "f" -> {
+                        val fact = facts[sessionRecord.recordId]
+                        if (fact != null) {
+                            RecordResponse(
+                                id = "f:${fact.factId}",
+                                name = "Fact #${fact.factId}",
+                                content = fact.content
+                            )
+                        } else {
+                            logger.warn { "Fact not found: id=${sessionRecord.recordId}, scenarioId=$scenarioId" }
+                            null
+                        }
+                    }
+                    "s" -> {
+                        val suspect = suspects[sessionRecord.recordId]
+                        if (suspect != null) {
+                            RecordResponse(
+                                id = "s:${suspect.suspectId}",
+                                name = suspect.name,
+                                content = suspect.description
+                            )
+                        } else {
+                            logger.warn { "Suspect not found: id=${sessionRecord.recordId}, scenarioId=$scenarioId" }
+                            null
+                        }
+                    }
+                    "c" -> {
+                        val clue = clues[sessionRecord.recordId]
+                        if (clue != null) {
+                            RecordResponse(
+                                id = "c:${clue.clueId}",
+                                name = clue.name,
+                                content = clue.description
+                            )
+                        } else {
+                            logger.warn { "Clue not found: id=${sessionRecord.recordId}, scenarioId=$scenarioId" }
+                            null
+                        }
+                    }
+                    else -> {
+                        logger.warn { "Unknown record tag: ${sessionRecord.recordTag}" }
+                        null
+                    }
                 }
-            } catch (e: ResponseStatusException) {
-                // Record was deleted or doesn't exist
-                logger.warn { "Record not found: tag=${sessionRecord.recordTag}, id=${sessionRecord.recordId}, scenarioId=$scenarioId" }
-                null
             } catch (e: Exception) {
                 // Unexpected error, log for debugging
                 logger.error(e) { "Error fetching record: tag=${sessionRecord.recordTag}, id=${sessionRecord.recordId}, scenarioId=$scenarioId" }
