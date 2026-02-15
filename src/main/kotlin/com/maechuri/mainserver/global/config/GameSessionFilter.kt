@@ -38,7 +38,7 @@ class GameSessionFilter : WebFilter {
                 .build()
             exchange.response.addCookie(cookie)
             
-            logger.debug { "Created new game session: $newSessionId" }
+            logger.debug { "Created new game session (id prefix): ${newSessionId.take(8)}" }
             newSessionId
         } else {
             existingSessionId
