@@ -90,6 +90,7 @@ class RecordService(
         val fact = factRepository.findByScenarioIdAndFactId(scenarioId, factId)
             .awaitSingle()
         return RecordResponse(
+            id = "f:${factId}",
             name = "Fact #$factId",
             content = fact.content
         )
@@ -99,6 +100,7 @@ class RecordService(
         val suspect = suspectRepository.findByScenarioIdAndSuspectId(scenarioId, suspectId)
             .awaitSingle()
         return RecordResponse(
+            id = "s:${suspectId}",
             name = suspect.name,
             content = suspect.description
         )
@@ -108,6 +110,7 @@ class RecordService(
         val clue = clueRepository.findByScenarioIdAndClueId(scenarioId, clueId)
             .awaitSingle()
         return RecordResponse(
+            id = "c:${clueId}",
             name = clue.name,
             content = clue.description
         )
