@@ -4,6 +4,7 @@ import com.maechuri.mainserver.game.dto.InteractRequest
 import com.maechuri.mainserver.game.dto.InteractResponse
 import com.maechuri.mainserver.game.dto.MapDataResponse
 import com.maechuri.mainserver.game.dto.RecordResponse
+import com.maechuri.mainserver.game.dto.RecordsListResponse
 import com.maechuri.mainserver.game.dto.solve.ClientSolveRequest
 import com.maechuri.mainserver.game.dto.solve.ClientSolveResponse
 import com.maechuri.mainserver.game.service.InteractionService
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -51,6 +53,22 @@ class ScenarioController(
     ): InteractResponse {
         val actualRequest = request ?: InteractRequest()
         return interactionService.handleInteraction(scenarioId, objectId, actualRequest)
+    }
+
+    /**
+     * Retrieves all interacted records for a game session.
+     *
+     * @param scenarioId The scenario ID (validated: must be positive)
+     * @param gameSessionId The game session ID (required query parameter)
+     * @return List of all interacted records with name and content
+     * @throws IllegalArgumentException if scenarioId is not positive or gameSessionId is blank
+     */
+    @GetMapping("/{scenarioId}/records")
+    suspend fun getAllRecords(
+        @PathVariable scenarioId: Long,
+        @RequestParam gameSessionId: String
+    ): RecordsListResponse {
+        return recordService.getAllInteractedRecords(scenarioId, gameSessionId)
     }
 
     /**

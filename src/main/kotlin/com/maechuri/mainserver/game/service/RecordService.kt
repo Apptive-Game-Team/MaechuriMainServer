@@ -1,17 +1,23 @@
 package com.maechuri.mainserver.game.service
 
 import com.maechuri.mainserver.game.dto.RecordResponse
+import com.maechuri.mainserver.game.dto.RecordsListResponse
+import com.maechuri.mainserver.game.repository.GameSessionRecordRepository
 import com.maechuri.mainserver.scenario.repository.ClueRepository
 import com.maechuri.mainserver.scenario.repository.FactRepository
 import com.maechuri.mainserver.scenario.repository.SuspectRepository
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.stereotype.Service
 
 @Service
 class RecordService(
     private val factRepository: FactRepository,
     private val suspectRepository: SuspectRepository,
-    private val clueRepository: ClueRepository
+    private val clueRepository: ClueRepository,
+    private val gameSessionRecordRepository: GameSessionRecordRepository
 ) {
 
     /**
@@ -38,6 +44,38 @@ class RecordService(
             "c" -> fetchClue(scenarioId, id)
             else -> throw IllegalArgumentException("Invalid record tag: $tag. Must be 'f', 's', or 'c'")
         }
+    }
+
+    /**
+     * Retrieves all interacted records for a game session.
+     * 
+     * @param scenarioId The scenario identifier
+     * @param gameSessionId The game session identifier
+     * @return RecordsListResponse containing list of all interacted records
+     */
+    suspend fun getAllInteractedRecords(scenarioId: Long, gameSessionId: String): RecordsListResponse {
+        require(scenarioId > 0) { "scenarioId must be positive" }
+        require(gameSessionId.isNotBlank()) { "gameSessionId must not be blank" }
+        
+        val sessionRecords = gameSessionRecordRepository.findAllByGameSessionId(gameSessionId)
+            .asFlow()
+            .toList()
+        
+        val records = sessionRecords.mapNotNull { sessionRecord ->
+            try {
+                when (sessionRecord.recordTag) {
+                    "f" -> fetchFact(scenarioId, sessionRecord.recordId)
+                    "s" -> fetchSuspect(scenarioId, sessionRecord.recordId)
+                    "c" -> fetchClue(scenarioId, sessionRecord.recordId)
+                    else -> null
+                }
+            } catch (e: Exception) {
+                // Skip records that can't be fetched (e.g., deleted or invalid)
+                null
+            }
+        }
+        
+        return RecordsListResponse(records)
     }
     
     private suspend fun fetchFact(scenarioId: Long, factId: Long): RecordResponse {
