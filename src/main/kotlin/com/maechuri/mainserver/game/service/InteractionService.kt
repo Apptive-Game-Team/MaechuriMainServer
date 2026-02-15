@@ -9,14 +9,21 @@ import com.maechuri.mainserver.game.dto.solve.AiSolveReqeust
 import com.maechuri.mainserver.game.dto.solve.AiSolveResponse
 import com.maechuri.mainserver.game.dto.solve.ClientSolveRequest
 import com.maechuri.mainserver.game.dto.solve.ClientSolveResponse
+import com.maechuri.mainserver.game.entity.GameSessionRecord
+import com.maechuri.mainserver.game.repository.GameSessionRecordRepository
 import com.maechuri.mainserver.scenario.repository.ClueRepository
 import kotlinx.coroutines.reactor.awaitSingle
+import mu.KotlinLogging
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
+
+private val logger = KotlinLogging.logger {}
 
 @Service
 class InteractionService(
     private val clueRepository: ClueRepository,
-    private val aiClient: AiClient
+    private val aiClient: AiClient,
+    private val gameSessionRecordRepository: GameSessionRecordRepository
 ) {
 
     suspend fun solve(scenarioId: Long, clientSolveRequest: ClientSolveRequest): ClientSolveResponse {
@@ -30,7 +37,7 @@ class InteractionService(
         return when (objectId.get(0)) {
             's' -> handleSuspectInteraction(scenarioId, objectRealId, request)
             'i' -> handleDetectiveInteraction(scenarioId, request)
-            'c' -> handleClueInteraction(scenarioId, objectRealId)
+            'c' -> handleClueInteraction(scenarioId, objectRealId, request.gameSessionId)
             else -> throw IllegalArgumentException("Unknown object id type: $objectId")
         }
     }
@@ -65,20 +72,54 @@ class InteractionService(
             )
         )
 
+        // Save suspect interaction to records if gameSessionId is provided
+        request.gameSessionId?.let { sessionId ->
+            saveRecord(sessionId, "s", suspectId)
+            
+            // Save revealed facts if any
+            responseMessage.revealed_fact_ids?.forEach { factId ->
+                saveRecord(sessionId, "f", factId)
+            }
+        }
+
         return InteractResponse(
             type = "two-way",
             message = responseMessage.answer,
+            pressure = responseMessage.pressure,
+            pressureDelta = responseMessage.pressure_delta,
+            revealedFactIds = responseMessage.revealed_fact_ids
         )
     }
 
-    private suspend fun handleClueInteraction(scenarioId: Long, objectId: Long): InteractResponse {
+    private suspend fun handleClueInteraction(scenarioId: Long, objectId: Long, gameSessionId: String?): InteractResponse {
         val clue = clueRepository.findByScenarioIdAndClueId(scenarioId, objectId)
             .awaitSingle()
+
+        // Save clue interaction to records if gameSessionId is provided
+        gameSessionId?.let { sessionId ->
+            saveRecord(sessionId, "c", objectId)
+        }
 
         return InteractResponse(
             type = "simple",
             message = clue.description,
             name = clue.name,
         )
+    }
+
+    private suspend fun saveRecord(gameSessionId: String, recordTag: String, recordId: Long) {
+        try {
+            val record = GameSessionRecord(
+                gameSessionId = gameSessionId,
+                recordTag = recordTag,
+                recordId = recordId,
+                interactedAt = LocalDateTime.now()
+            )
+            gameSessionRecordRepository.save(record).awaitSingle()
+            logger.debug { "Saved record: sessionId=$gameSessionId, tag=$recordTag, id=$recordId" }
+        } catch (e: Exception) {
+            // Ignore duplicate key errors (record already exists)
+            logger.debug { "Record already exists or error saving: sessionId=$gameSessionId, tag=$recordTag, id=$recordId" }
+        }
     }
 }

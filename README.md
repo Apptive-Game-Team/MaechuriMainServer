@@ -2,6 +2,57 @@
 
 ## API Documentation
 
+### Interaction API
+
+#### Interact with Scenario Objects
+
+Interact with suspects, clues, or detective in a scenario. Automatically saves interaction records when `gameSessionId` is provided.
+
+**Endpoint:** `POST /api/scenarios/{scenarioId}/interact/{objectId}`
+
+**Path Parameters:**
+- `scenarioId` (Long): The ID of the scenario
+- `objectId` (String): The object identifier in format `tag:id`
+  - `s:id` - Suspect (e.g., `s:101`)
+  - `c:id` - Clue (e.g., `c:1`)
+  - `i:id` - Detective/Investigator
+
+**Request Body:**
+```json
+{
+  "message": "안녕하세요",
+  "gameSessionId": "session-123"
+}
+```
+
+**Response for Suspect Interaction:**
+```json
+{
+  "type": "two-way",
+  "message": "대답 내용...",
+  "pressure": 50,
+  "pressureDelta": -15,
+  "revealedFactIds": [31, 32]
+}
+```
+
+**Response for Clue Interaction:**
+```json
+{
+  "type": "simple",
+  "name": "피 묻은 칼",
+  "message": "주방 싱크대에서 발견된 피 묻은 식칼."
+}
+```
+
+**Automatic Record Saving:**
+- When `gameSessionId` is provided in the request:
+  - Suspect interactions (`s:n`) are saved to the record table
+  - Clue interactions (`c:n`) are saved to the record table
+  - Revealed facts from suspect conversations are automatically saved
+  
+---
+
 ### Records API
 
 #### Get All Interacted Records
