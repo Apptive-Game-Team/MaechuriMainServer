@@ -117,9 +117,12 @@ class InteractionService(
             )
             gameSessionRecordRepository.save(record).awaitSingle()
             logger.debug { "Saved record: sessionId=$gameSessionId, tag=$recordTag, id=$recordId" }
+        } catch (e: org.springframework.dao.DataIntegrityViolationException) {
+            // Record already exists (duplicate key), which is expected behavior
+            logger.debug { "Record already exists: sessionId=$gameSessionId, tag=$recordTag, id=$recordId" }
         } catch (e: Exception) {
-            // Ignore duplicate key errors (record already exists)
-            logger.debug { "Record already exists or error saving: sessionId=$gameSessionId, tag=$recordTag, id=$recordId" }
+            // Unexpected error, log as warning
+            logger.warn(e) { "Failed to save record: sessionId=$gameSessionId, tag=$recordTag, id=$recordId" }
         }
     }
 }
