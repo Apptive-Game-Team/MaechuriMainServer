@@ -17,7 +17,6 @@ data class Suspect(
     val speechStyle: String,
     val emotionalTendency: String,
     val lyingPattern: String,
-    val criticalClueIds: String, // jsonb
     val x: Short?,
     val y: Short?,
 )

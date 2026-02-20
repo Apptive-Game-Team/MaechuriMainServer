@@ -53,7 +53,7 @@ fun Location.toDomain(): com.maechuri.mainserver.scenario.domain.Location {
 }
 
 fun Clue.toDomain(location: com.maechuri.mainserver.scenario.domain.Location): com.maechuri.mainserver.scenario.domain.Clue {
-    val relatedFactIdsList: List<Long>? = this.relatedFactIds?.let { if (it.isNotBlank()) objectMapper.readValue(it) else emptyList() }
+    val relatedSuspectIdsList: List<Long>? = this.relatedSuspectIds?.let { if (it.isNotBlank()) objectMapper.readValue(it) else emptyList() }
 
     return com.maechuri.mainserver.scenario.domain.Clue(
         clueId = this.clueId,
@@ -63,15 +63,13 @@ fun Clue.toDomain(location: com.maechuri.mainserver.scenario.domain.Location): c
         logicExplanation = this.logicExplanation,
         decodedAnswer = this.decodedAnswer,
         isRedHerring = this.isRedHerring,
-        relatedFactIds = relatedFactIdsList,
+        relatedSuspectIds = relatedSuspectIdsList,
         x = this.x,
         y = this.y,
     )
 }
 
 fun Suspect.toDomain(): com.maechuri.mainserver.scenario.domain.Suspect {
-    val criticalClueIdsList: List<Long> = if (this.criticalClueIds.isNotBlank()) objectMapper.readValue(this.criticalClueIds) else emptyList()
-
     return com.maechuri.mainserver.scenario.domain.Suspect(
         suspectId = this.suspectId,
         name = this.name,
@@ -85,7 +83,6 @@ fun Suspect.toDomain(): com.maechuri.mainserver.scenario.domain.Suspect {
         speechStyle = this.speechStyle,
         emotionalTendency = this.emotionalTendency,
         lyingPattern = this.lyingPattern,
-        criticalClueIds = criticalClueIdsList,
         x = this.x,
         y = this.y,
     )
@@ -163,7 +160,7 @@ fun com.maechuri.mainserver.scenario.domain.Clue.toEntity(scenarioId: Long): Clu
         logicExplanation = this.logicExplanation,
         decodedAnswer = this.decodedAnswer,
         isRedHerring = this.isRedHerring,
-        relatedFactIds = this.relatedFactIds?.let { objectMapper.writeValueAsString(it) },
+        relatedSuspectIds = this.relatedSuspectIds?.let { objectMapper.writeValueAsString(it) },
         x = this.x,
         y = this.y,
     )
@@ -184,7 +181,6 @@ fun com.maechuri.mainserver.scenario.domain.Suspect.toEntity(scenarioId: Long): 
         speechStyle = this.speechStyle,
         emotionalTendency = this.emotionalTendency,
         lyingPattern = this.lyingPattern,
-        criticalClueIds = objectMapper.writeValueAsString(this.criticalClueIds),
         x = this.x,
         y = this.y,
     )

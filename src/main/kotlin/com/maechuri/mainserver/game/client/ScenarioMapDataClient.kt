@@ -120,6 +120,41 @@ class ScenarioMapDataClient(
                 )
             )
             assets.add(AssetInfo(id = playerId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/player.json"))
+            availableSpots.remove(randomSpot)
+        }
+
+        // Add detective at a random available spot
+        if (availableSpots.isNotEmpty()) {
+            val randomSpot = availableSpots.random()
+            val detectiveId = "d:1"
+            objects.add(
+                MapObject(
+                    id = detectiveId,
+                    orderInLayer = 3,
+                    name = "형사",
+                    type = listOf("Interactable", "Non-Passable"),
+                    position = randomSpot
+                )
+            )
+            assets.add(AssetInfo(id = detectiveId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/player.json"))
+            availableSpots.remove(randomSpot)
+        }
+
+        // Add investigator at a random available spot
+        if (availableSpots.isNotEmpty()) {
+            val randomSpot = availableSpots.random()
+            val investigatorId = "i:1"
+            objects.add(
+                MapObject(
+                    id = investigatorId,
+                    orderInLayer = 3,
+                    name = "조사원",
+                    type = listOf("Interactable", "Non-Passable"),
+                    position = randomSpot
+                )
+            )
+            assets.add(AssetInfo(id = investigatorId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/player.json"))
+            availableSpots.remove(randomSpot)
         }
 
         return MapDataResponse(
