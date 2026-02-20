@@ -88,7 +88,7 @@ class ScenarioMapDataClient(
                         position = pos
                     )
                 )
-                assets.add(AssetInfo(id = objectId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_1.json"))
+                assets.add(AssetInfo(id = objectId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/memo.json"))
                 occupiedCoordinates.add(pos)
             }
         }
@@ -136,7 +136,7 @@ class ScenarioMapDataClient(
                     position = randomSpot
                 )
             )
-            assets.add(AssetInfo(id = detectiveId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/player.json"))
+            assets.add(AssetInfo(id = detectiveId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/detective.json"))
             availableSpots.remove(randomSpot)
         }
 
@@ -153,7 +153,7 @@ class ScenarioMapDataClient(
                     position = randomSpot
                 )
             )
-            assets.add(AssetInfo(id = investigatorId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/player.json"))
+            assets.add(AssetInfo(id = investigatorId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/investigator.json"))
             availableSpots.remove(randomSpot)
         }
 
