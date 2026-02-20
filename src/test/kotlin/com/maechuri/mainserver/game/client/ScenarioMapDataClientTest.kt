@@ -49,10 +49,10 @@ class ScenarioMapDataClientTest {
             createdAt = LocalDateTime.now(),
             locations = listOf(mockLocation),
             clues = listOf(
-                Clue(clueId = 1L, name = "Test Clue", location = mockLocation, description = "A clue", logicExplanation = "Logic", decodedAnswer = null, isRedHerring = false, relatedFactIds = emptyList(), x = 5, y = 5)
+                Clue(clueId = 1L, name = "Test Clue", location = mockLocation, description = "A clue", logicExplanation = "Logic", decodedAnswer = null, isRedHerring = false, relatedSuspectIds = emptyList(), x = 5, y = 5)
             ),
             suspects = listOf(
-                Suspect(suspectId = 101L, name = "Test Suspect", role = "Witness", age = 30, gender = "Male", description = "A suspect", isCulprit = false, motive = null, alibiSummary = "Alibi", speechStyle = "Polite", emotionalTendency = "Calm", lyingPattern = "None", criticalClueIds = emptyList(), x = 10, y = 10)
+                Suspect(suspectId = 101L, name = "Test Suspect", role = "Witness", age = 30, gender = "Male", description = "A suspect", isCulprit = false, motive = null, alibiSummary = "Alibi", speechStyle = "Polite", emotionalTendency = "Calm", lyingPattern = "None", x = 10, y = 10)
             ),
             maps = listOf(
                 ScenarioMap(mapId = 1L, type = "room", name = "Test Room", x = 2, y = 2, width = 10, height = 10, extraData = emptyMap())

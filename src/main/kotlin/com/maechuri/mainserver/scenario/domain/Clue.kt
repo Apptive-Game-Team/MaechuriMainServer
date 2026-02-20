@@ -8,7 +8,7 @@ data class Clue(
     val logicExplanation: String,
     val decodedAnswer: String?,
     val isRedHerring: Boolean,
-    val relatedFactIds: List<Long>?,
+    val relatedSuspectIds: List<Long>?,
     val x: Short?,
     val y: Short?,
 )
