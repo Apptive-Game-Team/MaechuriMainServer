@@ -2,6 +2,7 @@ package com.maechuri.mainserver.game.client
 
 import com.maechuri.mainserver.game.dto.*
 import com.maechuri.mainserver.scenario.provider.ScenarioProvider
+import com.maechuri.mainserver.scenario.provider.TodayScenarioIdProvider
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
 import java.time.format.DateTimeFormatter
@@ -9,7 +10,8 @@ import java.time.format.DateTimeFormatter
 @Primary
 @Component
 class ScenarioMapDataClient(
-    private val scenarioProvider: ScenarioProvider
+    private val scenarioProvider: ScenarioProvider,
+    private val todayScenarioIdProvider: TodayScenarioIdProvider
 ) : MapDataClient {
 
     override suspend fun getMapData(scenarioId: Long): MapDataResponse {
@@ -170,8 +172,6 @@ class ScenarioMapDataClient(
     }
 
     override suspend fun getTodayMapData(): MapDataResponse {
-        // This should be implemented to fetch the "scenario of the day"
-        // For now, we can delegate to getMapData with a fixed ID, e.g., 1L
-        return getMapData(1L)
+        return getMapData(todayScenarioIdProvider.getTodayScenarioId())
     }
 }

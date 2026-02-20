@@ -7,6 +7,7 @@ import com.maechuri.mainserver.scenario.domain.ScenarioMap
 import com.maechuri.mainserver.scenario.domain.Suspect
 import com.maechuri.mainserver.scenario.entity.Difficulty
 import com.maechuri.mainserver.scenario.provider.ScenarioProvider
+import com.maechuri.mainserver.scenario.provider.TodayScenarioIdProvider
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -20,8 +21,9 @@ import kotlin.test.assertTrue
 
 class ScenarioMapDataClientTest {
 
-    private val scenarioProvider: ScenarioProvider = mock() // Using mockito-kotlin's mock for now
-    private val scenarioMapDataClient = ScenarioMapDataClient(scenarioProvider)
+    private val scenarioProvider: ScenarioProvider = mock()
+    private val todayScenarioIdProvider: TodayScenarioIdProvider = mock()
+    private val scenarioMapDataClient = ScenarioMapDataClient(scenarioProvider, todayScenarioIdProvider)
 
     @Test
     fun `getMapData returns correctly mapped data`() = runBlocking {
