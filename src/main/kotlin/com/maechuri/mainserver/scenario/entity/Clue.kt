@@ -12,7 +12,7 @@ data class Clue(
     val logicExplanation: String,
     val decodedAnswer: String?,
     val isRedHerring: Boolean,
-    val relatedFactIds: String?, // jsonb
+    val relatedSuspectIds: String?, // jsonb
     val x: Short?,
     val y: Short?,
 )
