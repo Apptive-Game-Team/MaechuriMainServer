@@ -56,6 +56,5 @@ class LatestScenarioIdProviderTest {
         assertFailsWith<IllegalStateException> {
             provider.getTodayScenarioId()
         }
-        Unit
     }
 }
