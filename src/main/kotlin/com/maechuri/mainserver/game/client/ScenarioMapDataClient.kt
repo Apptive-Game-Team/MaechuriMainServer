@@ -70,7 +70,7 @@ class ScenarioMapDataClient(
                         position = pos
                     )
                 )
-                assets.add(AssetInfo(id = objectId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/cook_2.json"))
+                assets.add(AssetInfo(id = objectId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/suspect.json"))
                 occupiedCoordinates.add(pos)
             }
         }
