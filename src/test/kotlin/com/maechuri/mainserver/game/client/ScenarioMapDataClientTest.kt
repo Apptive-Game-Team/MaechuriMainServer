@@ -7,11 +7,13 @@ import com.maechuri.mainserver.scenario.domain.ScenarioMap
 import com.maechuri.mainserver.scenario.domain.Suspect
 import com.maechuri.mainserver.scenario.entity.Difficulty
 import com.maechuri.mainserver.scenario.provider.ScenarioProvider
+import com.maechuri.mainserver.scenario.provider.TodayScenarioIdProvider
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.Mockito.anyLong
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.whenever
 import java.time.LocalDateTime
 import java.time.LocalTime
 import kotlin.test.assertEquals
@@ -20,8 +22,9 @@ import kotlin.test.assertTrue
 
 class ScenarioMapDataClientTest {
 
-    private val scenarioProvider: ScenarioProvider = mock() // Using mockito-kotlin's mock for now
-    private val scenarioMapDataClient = ScenarioMapDataClient(scenarioProvider)
+    private val scenarioProvider: ScenarioProvider = mock()
+    private val todayScenarioIdProvider: TodayScenarioIdProvider = mock()
+    private val scenarioMapDataClient = ScenarioMapDataClient(scenarioProvider, todayScenarioIdProvider)
 
     @Test
     fun `getMapData returns correctly mapped data`() = runBlocking {
@@ -116,5 +119,49 @@ class ScenarioMapDataClientTest {
         assertEquals("플레이어", playerObject.name)
         assertTrue(playerObject.position.x >= 0 && playerObject.position.x < 50, "Player X position out of bounds")
         assertTrue(playerObject.position.y >= 0 && playerObject.position.y < 50, "Player Y position out of bounds")
+    }
+
+    @Test
+    fun `getTodayMapData delegates to getMapData with id from todayScenarioIdProvider`() = runBlocking {
+        // Given
+        val todayScenarioId = 7L
+        val mockLocation = Location(locationId = 1L, name = "Today Room", canSee = emptyList(), cannotSee = emptyList(), accessRequires = null)
+        val mockScenario = Scenario(
+            scenarioId = todayScenarioId,
+            difficulty = Difficulty.easy,
+            theme = "Today Theme",
+            tone = "Tone",
+            language = "ko",
+            incidentType = "Incident",
+            incidentSummary = "Summary",
+            incidentTimeStart = LocalTime.NOON,
+            incidentTimeEnd = LocalTime.MIDNIGHT,
+            incidentLocationId = 1L,
+            primaryObject = "Object",
+            crimeTimeStart = LocalTime.NOON,
+            crimeTimeEnd = LocalTime.MIDNIGHT,
+            crimeLocationId = 1L,
+            crimeMethod = "Method",
+            noSupernatural = true,
+            noTimeTravel = true,
+            createdAt = LocalDateTime.now(),
+            locations = listOf(mockLocation),
+            clues = emptyList(),
+            suspects = emptyList(),
+            maps = listOf(
+                ScenarioMap(mapId = 1L, type = "room", name = "Today Room", x = 0, y = 0, width = 5, height = 5, extraData = emptyMap())
+            )
+        )
+
+        whenever(todayScenarioIdProvider.getTodayScenarioId()).thenReturn(todayScenarioId)
+        whenever(scenarioProvider.findScenario(anyLong())).thenAnswer { mockScenario }
+
+        // When
+        val response = scenarioMapDataClient.getTodayMapData()
+
+        // Then
+        assertNotNull(response)
+        assertEquals(todayScenarioId, response.scenarioId)
+        assertEquals("Today Theme", response.scenarioName)
     }
 }
