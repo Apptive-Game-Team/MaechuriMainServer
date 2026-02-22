@@ -1,34 +1,33 @@
 package com.maechuri.mainserver.admin
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.springframework.jdbc.core.simple.JdbcClient
+import kotlinx.coroutines.reactive.awaitSingle
+import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.stereotype.Service
 
 @Service
-class AdminService(private val jdbcClient: JdbcClient) {
+class AdminService(private val databaseClient: DatabaseClient) {
 
     suspend fun updateSuspectPosition(scenarioId: Long, suspectId: Long, x: Short, y: Short) {
-        withContext(Dispatchers.IO) {
-            val updated = jdbcClient.sql("UPDATE suspect SET x = :x, y = :y WHERE scenario_id = :scenarioId AND suspect_id = :suspectId")
-                .param("x", x)
-                .param("y", y)
-                .param("scenarioId", scenarioId)
-                .param("suspectId", suspectId)
-                .update()
-            if (updated == 0) throw NoSuchElementException("Suspect $suspectId not found in scenario $scenarioId")
-        }
+        val updated = databaseClient.sql("UPDATE suspect SET x = :x, y = :y WHERE scenario_id = :scenarioId AND suspect_id = :suspectId")
+            .bind("x", x)
+            .bind("y", y)
+            .bind("scenarioId", scenarioId)
+            .bind("suspectId", suspectId)
+            .fetch()
+            .rowsUpdated()
+            .awaitSingle()
+        if (updated == 0L) throw NoSuchElementException("Suspect $suspectId not found in scenario $scenarioId")
     }
 
     suspend fun updateCluePosition(scenarioId: Long, clueId: Long, x: Short, y: Short) {
-        withContext(Dispatchers.IO) {
-            val updated = jdbcClient.sql("UPDATE clue SET x = :x, y = :y WHERE scenario_id = :scenarioId AND clue_id = :clueId")
-                .param("x", x)
-                .param("y", y)
-                .param("scenarioId", scenarioId)
-                .param("clueId", clueId)
-                .update()
-            if (updated == 0) throw NoSuchElementException("Clue $clueId not found in scenario $scenarioId")
-        }
+        val updated = databaseClient.sql("UPDATE clue SET x = :x, y = :y WHERE scenario_id = :scenarioId AND clue_id = :clueId")
+            .bind("x", x)
+            .bind("y", y)
+            .bind("scenarioId", scenarioId)
+            .bind("clueId", clueId)
+            .fetch()
+            .rowsUpdated()
+            .awaitSingle()
+        if (updated == 0L) throw NoSuchElementException("Clue $clueId not found in scenario $scenarioId")
     }
 }
