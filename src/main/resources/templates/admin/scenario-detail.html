@@ -25,9 +25,6 @@
                 <p><strong>Theme:</strong> <span th:text="${scenario.theme}"></span></p>
                 <p><strong>Tone:</strong> <span th:text="${scenario.tone}"></span></p>
                 <p><strong>Language:</strong> <span th:text="${scenario.language}"></span></p>
-                <p><strong>No Supernatural:</strong> <span th:text="${scenario.noSupernatural}"></span></p>
-                <p><strong>No Time Travel:</strong> <span th:text="${scenario.noTimeTravel}"></span></p>
-                <p><strong>Created At:</strong> <span th:text="${scenario.createdAt}"></span></p>
             </div>
         </div>
 
@@ -39,7 +36,7 @@
                 <p><strong>Type:</strong> <span th:text="${scenario.incidentType}"></span></p>
                 <p><strong>Summary:</strong> <span th:text="${scenario.incidentSummary}"></span></p>
                 <p><strong>Time:</strong> <span th:text="${scenario.incidentTimeStart}"></span> - <span th:text="${scenario.incidentTimeEnd}"></span></p>
-                <p><strong>Location:</strong> <span th:text="${scenario.incidentLocationId}"></span></p>
+                <p><strong>Location ID:</strong> <span th:text="${scenario.incidentLocationId}"></span></p>
                 <p><strong>Primary Object:</strong> <span th:text="${scenario.primaryObject}"></span></p>
             </div>
         </div>
@@ -50,7 +47,7 @@
             </div>
             <div class="card-body">
                 <p><strong>Time:</strong> <span th:text="${scenario.crimeTimeStart}"></span> - <span th:text="${scenario.crimeTimeEnd}"></span></p>
-                <p><strong>Location:</strong> <span th:text="${scenario.crimeLocationId}"></span></p>
+                <p><strong>Location ID:</strong> <span th:text="${scenario.crimeLocationId}"></span></p>
                 <p><strong>Method:</strong> <span th:text="${scenario.crimeMethod}"></span></p>
             </div>
         </div>
@@ -102,14 +99,6 @@
                         <div class="card-body">
                             <p><strong>ID:</strong> <span th:text="${location.locationId}"></span></p>
                             <p><strong>Access Requires:</strong> <span th:text="${location.accessRequires}"></span></p>
-                            <h6>Can See</h6>
-                            <ul>
-                                <li th:each="id : ${location.canSee}" th:text="${id}"></li>
-                            </ul>
-                            <h6>Cannot See</h6>
-                            <ul>
-                                <li th:each="id : ${location.cannotSee}" th:text="${id}"></li>
-                            </ul>
                         </div>
                     </div>
                 </div>
@@ -135,26 +124,6 @@
                 <div th:replace="~{::clueFragment(clues=${scenario.clues})}"></div>
             </div>
         </div>
-
-        <!-- Facts -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h2>Facts</h2>
-            </div>
-            <div class="card-body">
-                <div th:replace="~{::factFragment(facts=${scenario.facts})}"></div>
-            </div>
-        </div>
-
-        <!-- Maps -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h2>Maps</h2>
-            </div>
-            <div class="card-body">
-                <div th:replace="~{::mapFragment(maps=${scenario.maps})}"></div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -171,19 +140,11 @@
             <p><strong>Is Culprit:</strong> <span th:text="${suspect.isCulprit}" class="badge" th:classappend="${suspect.isCulprit ? 'bg-danger' : 'bg-secondary'}"></span></p>
             <p><strong>Motive:</strong> <span th:text="${suspect.motive}"></span></p>
             <p><strong>Alibi:</strong> <span th:text="${suspect.alibiSummary}"></span></p>
-            <p><strong>Speech Style:</strong> <span th:text="${suspect.speechStyle}"></span></p>
-            <p><strong>Emotional Tendency:</strong> <span th:text="${suspect.emotionalTendency}"></span></p>
-            <p><strong>Lying Pattern:</strong> <span th:text="${suspect.lyingPattern}"></span></p>
             <p>
                 <strong>Position:</strong>
                 <span th:text="|(${suspect.x}, ${suspect.y})|" class="position-badge"
                       th:id="|suspect-pos-${suspect.suspectId}|"></span>
             </p>
-            <hr>
-            <h6>Critical Clue IDs</h6>
-            <ul>
-                <li th:each="clueId : ${suspect.criticalClueIds}" th:text="${clueId}"></li>
-            </ul>
         </div>
     </div>
 </div>
@@ -198,49 +159,14 @@
             <p><strong>Description:</strong> <span th:text="${clue.description}"></span></p>
             <p><strong>Is Red Herring:</strong> <span th:text="${clue.isRedHerring}" class="badge" th:classappend="${clue.isRedHerring ? 'bg-warning' : 'bg-info'}"></span></p>
             <p><strong>Logic Explanation:</strong> <span th:text="${clue.logicExplanation}"></span></p>
-            <p><strong>Decoded Answer:</strong> <span th:text="${clue.decodedAnswer}"></span></p>
             <p>
                 <strong>Position:</strong>
                 <span th:text="|(${clue.x}, ${clue.y})|" class="position-badge"
                       th:id="|clue-pos-${clue.clueId}|"></span>
             </p>
-            <h6>Related Fact IDs</h6>
+            <h6>Related Suspect IDs</h6>
             <ul>
-                <li th:each="factId : ${clue.relatedFactIds}" th:text="${factId}"></li>
-            </ul>
-        </div>
-    </div>
-</div>
-
-<!-- Fact Fragment -->
-<div th:fragment="factFragment(facts)">
-    <div th:each="fact : ${facts}" class="card mb-3">
-        <div class="card-header" th:text="|Fact ID: ${fact.factId}|"></div>
-        <div class="card-body">
-            <p><strong>Scenario ID:</strong> <span th:text="${fact.scenarioId}"></span></p>
-            <p><strong>Suspect ID:</strong> <span th:text="${fact.suspectId}"></span></p>
-            <p><strong>Threshold:</strong> <span th:text="${fact.threshold}"></span></p>
-            <p><strong>Type:</strong> <span th:text="${fact.type}"></span></p>
-            <h6>Content</h6>
-            <ul>
-                <li th:each="entry : ${fact.content}" th:text="|${entry.key}: ${entry.value}|"></li>
-            </ul>
-        </div>
-    </div>
-</div>
-
-<!-- Map Fragment -->
-<div th:fragment="mapFragment(maps)">
-    <div th:each="map : ${maps}" class="card mb-3">
-        <div class="card-header" th:text="|Map: ${map.name}|"></div>
-        <div class="card-body">
-            <p><strong>Map ID:</strong> <span th:text="${map.mapId}"></span></p>
-            <p><strong>Type:</strong> <span th:text="${map.type}"></span></p>
-            <p><strong>Position:</strong> <span th:text="|(${map.x}, ${map.y})|"></span></p>
-            <p><strong>Size:</strong> <span th:text="|${map.width} x ${map.height}|"></span></p>
-            <h6>Extra Data</h6>
-            <ul>
-                <li th:each="entry : ${map.extraData}" th:text="|${entry.key}: ${entry.value}|"></li>
+                <li th:each="suspectId : ${clue.relatedSuspectIds}" th:text="${suspectId}"></li>
             </ul>
         </div>
     </div>
