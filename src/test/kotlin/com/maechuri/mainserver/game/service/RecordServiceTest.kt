@@ -77,7 +77,6 @@ class RecordServiceTest {
             speechStyle = "정중하고 격식 있는",
             emotionalTendency = "차분함",
             lyingPattern = "눈을 마주치지 못함",
-            criticalClueIds = "[]",
             x = 5,
             y = 15
         )
@@ -104,7 +103,7 @@ class RecordServiceTest {
             logicExplanation = "범행에 사용된 흉기일 가능성이 높습니다.",
             decodedAnswer = null,
             isRedHerring = false,
-            relatedFactIds = "[]",
+            relatedSuspectIds = "[]",
             x = 26,
             y = 6
         )
@@ -170,7 +169,7 @@ class RecordServiceTest {
             logicExplanation = "범행에 사용된 흉기일 가능성이 높습니다.",
             decodedAnswer = null,
             isRedHerring = false,
-            relatedFactIds = "[]",
+            relatedSuspectIds = "[]",
             x = 26,
             y = 6
         )
@@ -189,7 +188,6 @@ class RecordServiceTest {
             speechStyle = "정중하고 격식 있는",
             emotionalTendency = "차분함",
             lyingPattern = "눈을 마주치지 못함",
-            criticalClueIds = "[]",
             x = 5,
             y = 15
         )
@@ -253,7 +251,7 @@ class RecordServiceTest {
             logicExplanation = "범행에 사용된 흉기일 가능성이 높습니다.",
             decodedAnswer = null,
             isRedHerring = false,
-            relatedFactIds = "[]",
+            relatedSuspectIds = "[]",
             x = 26,
             y = 6
         )
