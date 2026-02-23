@@ -8,6 +8,7 @@ import com.maechuri.mainserver.scenario.repository.ScenarioRepository
 import com.maechuri.mainserver.scenario.service.ScenarioGenerationService
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
@@ -19,7 +20,8 @@ class AdminController(
     private val assetService: AssetService,
     private val scenarioProvider: ScenarioProvider,
     private val scenarioRepository: ScenarioRepository,
-    private val scenarioGenerationService: ScenarioGenerationService
+    private val scenarioGenerationService: ScenarioGenerationService,
+    private val adminService: AdminService,
 ) {
 
     @GetMapping("/", "")
@@ -200,4 +202,28 @@ class AdminController(
         assetService.deleteTag(id)
        return  "redirect:/admin/tags"
     }
+
+    @PostMapping("/scenarios/{scenarioId}/suspects/{suspectId}/position")
+    @ResponseBody
+    suspend fun updateSuspectPosition(
+        @PathVariable scenarioId: Long,
+        @PathVariable suspectId: Long,
+        @RequestBody body: PositionRequest
+    ): ResponseEntity<Void> {
+        adminService.updateSuspectPosition(scenarioId, suspectId, body.x, body.y)
+        return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/scenarios/{scenarioId}/clues/{clueId}/position")
+    @ResponseBody
+    suspend fun updateCluePosition(
+        @PathVariable scenarioId: Long,
+        @PathVariable clueId: Long,
+        @RequestBody body: PositionRequest
+    ): ResponseEntity<Void> {
+        adminService.updateCluePosition(scenarioId, clueId, body.x, body.y)
+        return ResponseEntity.ok().build()
+    }
 }
+
+data class PositionRequest(val x: Short, val y: Short)

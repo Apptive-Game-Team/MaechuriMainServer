@@ -2,6 +2,13 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>Scenario Details</title>
+    <style>
+        #map-canvas { border: 1px solid #ccc; cursor: crosshair; }
+        .map-legend span { display: inline-block; width: 16px; height: 16px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+        .map-legend .suspect-dot { background: #0d6efd; }
+        .map-legend .clue-dot { background: #dc3545; border-radius: 0; }
+        .position-badge { font-family: monospace; }
+    </style>
 </head>
 <body>
 <div th:replace="~{admin/layout :: layout(~{::#main-content})}">
@@ -42,6 +49,41 @@
                 <p><strong>Time:</strong> <span th:text="${scenario.crimeTimeStart}"></span> - <span th:text="${scenario.crimeTimeEnd}"></span></p>
                 <p><strong>Location ID:</strong> <span th:text="${scenario.crimeLocationId}"></span></p>
                 <p><strong>Method:</strong> <span th:text="${scenario.crimeMethod}"></span></p>
+            </div>
+        </div>
+
+        <!-- Map Visualization -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">Map Visualization</h2>
+                <div class="map-legend small">
+                    <span class="suspect-dot"></span>Suspect &nbsp;
+                    <span class="clue-dot"></span>Clue
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small">Click on the map to move the selected suspect or clue. Select an item below first.</p>
+                <div class="mb-2">
+                    <label class="form-label fw-bold">Select to reposition:</label>
+                    <select id="entity-select" class="form-select form-select-sm w-auto d-inline-block">
+                        <option value="">-- none --</option>
+                        <optgroup label="Suspects" th:if="${not #lists.isEmpty(scenario.suspects)}">
+                            <option th:each="s : ${scenario.suspects}"
+                                    th:value="|suspect-${s.suspectId}|"
+                                    th:text="${s.name}"
+                                    th:attr="data-x=${s.x},data-y=${s.y}"></option>
+                        </optgroup>
+                        <optgroup label="Clues" th:if="${not #lists.isEmpty(scenario.clues)}">
+                            <option th:each="c : ${scenario.clues}"
+                                    th:value="|clue-${c.clueId}|"
+                                    th:text="${c.name}"
+                                    th:attr="data-x=${c.x},data-y=${c.y}"></option>
+                        </optgroup>
+                    </select>
+                    <span id="selected-pos" class="ms-3 text-secondary position-badge"></span>
+                </div>
+                <canvas id="map-canvas" width="800" height="600"></canvas>
+                <div id="map-message" class="mt-2 text-success small" style="display:none;"></div>
             </div>
         </div>
 
@@ -98,6 +140,11 @@
             <p><strong>Is Culprit:</strong> <span th:text="${suspect.isCulprit}" class="badge" th:classappend="${suspect.isCulprit ? 'bg-danger' : 'bg-secondary'}"></span></p>
             <p><strong>Motive:</strong> <span th:text="${suspect.motive}"></span></p>
             <p><strong>Alibi:</strong> <span th:text="${suspect.alibiSummary}"></span></p>
+            <p>
+                <strong>Position:</strong>
+                <span th:text="|(${suspect.x}, ${suspect.y})|" class="position-badge"
+                      th:id="|suspect-pos-${suspect.suspectId}|"></span>
+            </p>
         </div>
     </div>
 </div>
@@ -112,6 +159,11 @@
             <p><strong>Description:</strong> <span th:text="${clue.description}"></span></p>
             <p><strong>Is Red Herring:</strong> <span th:text="${clue.isRedHerring}" class="badge" th:classappend="${clue.isRedHerring ? 'bg-warning' : 'bg-info'}"></span></p>
             <p><strong>Logic Explanation:</strong> <span th:text="${clue.logicExplanation}"></span></p>
+            <p>
+                <strong>Position:</strong>
+                <span th:text="|(${clue.x}, ${clue.y})|" class="position-badge"
+                      th:id="|clue-pos-${clue.clueId}|"></span>
+            </p>
             <h6>Related Suspect IDs</h6>
             <ul>
                 <li th:each="suspectId : ${clue.relatedSuspectIds}" th:text="${suspectId}"></li>
@@ -119,6 +171,172 @@
         </div>
     </div>
 </div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const SCENARIO_ID = /*[[${scenario.scenarioId}]]*/ 0;
+
+    const MAP_TILES = /*[[${scenario.maps}]]*/ [];
+    const SUSPECTS = /*[[${scenario.suspects}]]*/ [];
+    const CLUES = /*[[${scenario.clues}]]*/ [];
+
+    // CELL: pixels per grid unit. Canvas is 800x600 = 20x15 cells at this size.
+    const CELL = 40;
+
+    function truncateName(name, maxLen = 8) {
+        return name && name.length > maxLen ? name.substring(0, maxLen) + '…' : (name || '');
+    }
+
+    const canvas = document.getElementById('map-canvas');
+    const ctx = canvas.getContext('2d');
+    const entitySelect = document.getElementById('entity-select');
+    const selectedPosLabel = document.getElementById('selected-pos');
+    const mapMessage = document.getElementById('map-message');
+
+    // Track current in-memory positions for the visualization
+    const positions = {};
+    SUSPECTS.forEach(s => { positions['suspect-' + s.suspectId] = { x: s.x, y: s.y }; });
+    CLUES.forEach(c => { positions['clue-' + c.clueId] = { x: c.x, y: c.y }; });
+
+    function drawMap() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw grid background
+        ctx.strokeStyle = '#e9ecef';
+        ctx.lineWidth = 0.5;
+        for (let gx = 0; gx <= canvas.width; gx += CELL) {
+            ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, canvas.height); ctx.stroke();
+        }
+        for (let gy = 0; gy <= canvas.height; gy += CELL) {
+            ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(canvas.width, gy); ctx.stroke();
+        }
+
+        // Draw map tiles
+        MAP_TILES.forEach(tile => {
+            const px = tile.x * CELL, py = tile.y * CELL;
+            const pw = tile.width * CELL, ph = tile.height * CELL;
+            ctx.fillStyle = 'rgba(13, 110, 253, 0.08)';
+            ctx.fillRect(px, py, pw, ph);
+            ctx.strokeStyle = '#0d6efd';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(px, py, pw, ph);
+            ctx.fillStyle = '#0d6efd';
+            ctx.font = '11px sans-serif';
+            ctx.fillText(tile.name, px + 4, py + 14);
+        });
+
+        // Draw suspects
+        SUSPECTS.forEach(s => {
+            const pos = positions['suspect-' + s.suspectId];
+            if (pos == null || pos.x == null || pos.y == null) return;
+            const cx = pos.x * CELL + CELL / 2, cy = pos.y * CELL + CELL / 2;
+            const selected = entitySelect.value === 'suspect-' + s.suspectId;
+            ctx.beginPath();
+            ctx.arc(cx, cy, selected ? 14 : 10, 0, 2 * Math.PI);
+            ctx.fillStyle = selected ? '#0a58ca' : '#0d6efd';
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 9px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('S', cx, cy);
+            ctx.fillStyle = '#333';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(truncateName(s.name), cx, cy + 16);
+        });
+
+        // Draw clues
+        CLUES.forEach(c => {
+            const pos = positions['clue-' + c.clueId];
+            if (pos == null || pos.x == null || pos.y == null) return;
+            const rx = pos.x * CELL + 4, ry = pos.y * CELL + 4;
+            const rw = CELL - 8, rh = CELL - 8;
+            const selected = entitySelect.value === 'clue-' + c.clueId;
+            ctx.fillStyle = selected ? '#b02a37' : '#dc3545';
+            ctx.fillRect(rx, ry, rw, rh);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(rx, ry, rw, rh);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 9px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('C', rx + rw / 2, ry + rh / 2);
+            ctx.fillStyle = '#333';
+            ctx.font = '10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(truncateName(c.name), rx + rw / 2, ry + rh + 2);
+        });
+
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'alphabetic';
+    }
+
+    entitySelect.addEventListener('change', () => {
+        const opt = entitySelect.selectedOptions[0];
+        if (opt && opt.value) {
+            const pos = positions[opt.value];
+            selectedPosLabel.textContent = pos && pos.x != null ? `(${pos.x}, ${pos.y})` : '(unset)';
+        } else {
+            selectedPosLabel.textContent = '';
+        }
+        drawMap();
+    });
+
+    canvas.addEventListener('click', async (e) => {
+        const key = entitySelect.value;
+        if (!key) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top) * scaleY;
+        const gx = Math.floor(mx / CELL);
+        const gy = Math.floor(my / CELL);
+
+        const dashIdx = key.indexOf('-');
+        const type = key.substring(0, dashIdx);
+        const id = key.substring(dashIdx + 1);
+        const url = `/admin/scenarios/${SCENARIO_ID}/${type}s/${id}/position`;
+
+        try {
+            await axios.post(url, { x: gx, y: gy }, { headers: { 'Content-Type': 'application/json' } });
+            positions[key] = { x: gx, y: gy };
+            selectedPosLabel.textContent = `(${gx}, ${gy})`;
+
+            // Update position badge in the details section
+            const badgeId = `${type}-pos-${id}`;
+            const badge = document.getElementById(badgeId);
+            if (badge) badge.textContent = `(${gx}, ${gy})`;
+
+            // Update the option's data attributes
+            const opt = entitySelect.querySelector(`option[value="${key}"]`);
+            if (opt) { opt.dataset.x = gx; opt.dataset.y = gy; }
+
+            showMessage(`Position updated to (${gx}, ${gy})`);
+            drawMap();
+        } catch (err) {
+            showMessage('Failed to update position: ' + (err.response?.data || err.message), true);
+        }
+    });
+
+    function showMessage(msg, isError = false) {
+        mapMessage.textContent = msg;
+        mapMessage.className = 'mt-2 small ' + (isError ? 'text-danger' : 'text-success');
+        mapMessage.style.display = '';
+        setTimeout(() => { mapMessage.style.display = 'none'; }, 3000);
+    }
+
+    drawMap();
+    /*]]>*/
+</script>
 
 </body>
 </html>
