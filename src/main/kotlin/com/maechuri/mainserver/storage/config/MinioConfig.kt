@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import java.net.URI
 
 @Configuration
-@EnableConfigurationProperties(MinioProperties::class)
+@EnableConfigurationProperties(MinioProperties::class, LeonardoProperties::class)
 class MinioConfig(private val minioProperties: MinioProperties) {
 
     @Bean

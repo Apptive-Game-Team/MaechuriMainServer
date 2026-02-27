@@ -1,9 +1,13 @@
 package com.maechuri.mainserver.storage.service
 
 import com.maechuri.mainserver.storage.config.MinioProperties
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Service
+import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
 import java.time.Duration
@@ -43,5 +47,33 @@ class MinioService(
      */
     fun getPermanentUrl(fileName: String): String {
         return "${minioProperties.endpoint}/${minioProperties.bucketName}/$fileName"
+    }
+
+    /**
+     * Upload a byte array as an object to MinIO
+     * @param key The key (path) under which to store the object
+     * @param content The raw bytes to upload
+     * @param contentType The MIME type of the content
+     */
+    suspend fun uploadObject(key: String, content: ByteArray, contentType: String) {
+        withContext(Dispatchers.IO) {
+            val request = PutObjectRequest.builder()
+                .bucket(minioProperties.bucketName)
+                .key(key)
+                .contentType(contentType)
+                .contentLength(content.size.toLong())
+                .build()
+            s3Client.putObject(request, RequestBody.fromBytes(content))
+        }
+    }
+
+    /**
+     * Upload a text string as an object to MinIO
+     * @param key The key (path) under which to store the object
+     * @param content The text content to upload
+     * @param contentType The MIME type of the content (default: application/json)
+     */
+    suspend fun uploadText(key: String, content: String, contentType: String = "application/json") {
+        uploadObject(key, content.toByteArray(Charsets.UTF_8), contentType)
     }
 }
