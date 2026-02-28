@@ -7,5 +7,5 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding
 data class LeonardoProperties @ConstructorBinding constructor(
     val apiKey: String,
     val baseUrl: String = "https://cloud.leonardo.ai/api/rest/v1",
-    val modelId: String = "b24e16ff-06e3-43eb-8d33-4416c2d75876",
+    val modelId: String = "6bef9f1b-29cb-40c7-b9df-32b51c1f67d3",
 )
