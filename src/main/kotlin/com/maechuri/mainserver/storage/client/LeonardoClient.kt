@@ -31,14 +31,13 @@ class LeonardoClient(private val leonardoProperties: LeonardoProperties) {
      * @return The generation job ID.
      */
     suspend fun createGeneration(prompt: String): String {
-        val sanitizedPrompt = prompt.take(500).replace(Regex("[\"\\\\]"), "")
+        val sanitizedPrompt = prompt.take(950).replace(Regex("[\"\\\\]"), "")
         val body = mapOf(
-            "prompt" to "RPG Maker style, 64x64 pixel art, simple sprite, white background, $sanitizedPrompt",
+            "prompt" to sanitizedPrompt,
             "modelId" to leonardoProperties.modelId,
             "width" to 512,
             "height" to 512,
-            "num_images" to 1,
-            "transparency" to "FOREGROUND_ONLY",
+            "num_images" to 1
         )
         val response = webClient.post()
             .uri("/generations")

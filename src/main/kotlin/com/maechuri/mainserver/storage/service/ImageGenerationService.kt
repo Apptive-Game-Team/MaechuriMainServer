@@ -31,7 +31,7 @@ class ImageGenerationService(
     suspend fun generateImagesForScenario(scenarioId: Long) {
         val suspects = suspectRepository.findAllByScenarioId(scenarioId).collectList().awaitSingle()
         for (suspect in suspects) {
-            if (suspect.visualDescription.isNullOrBlank() || suspect.assetsUrl != null) continue
+            if (suspect.visualDescription.isNullOrBlank() || !suspect.assetsUrl.isNullOrBlank()) continue
             try {
                 val assetsUrl = generateAndUpload("suspect", scenarioId, suspect.suspectId, suspect.visualDescription)
                 databaseClient.sql("UPDATE suspect SET assets_url = :assetsUrl WHERE scenario_id = :scenarioId AND suspect_id = :suspectId")
@@ -47,7 +47,7 @@ class ImageGenerationService(
 
         val clues = clueRepository.findAllByScenarioId(scenarioId).collectList().awaitSingle()
         for (clue in clues) {
-            if (clue.visualDescription.isNullOrBlank() || clue.assetsUrl != null) continue
+            if (clue.visualDescription.isNullOrBlank() || !clue.assetsUrl.isNullOrBlank()) continue
             try {
                 val assetsUrl = generateAndUpload("clue", scenarioId, clue.clueId, clue.visualDescription)
                 databaseClient.sql("UPDATE clue SET assets_url = :assetsUrl WHERE scenario_id = :scenarioId AND clue_id = :clueId")
@@ -72,7 +72,14 @@ class ImageGenerationService(
         objectId: Long,
         visualDescription: String,
     ): String {
-        val generationId = leonardoClient.createGeneration(visualDescription)
+        val style = "64x64 pixel art, simple sprite, white background"
+        val subject = when (type) {
+            "suspect" -> "full body character sprite, $visualDescription"
+            "clue" -> "item sprite, $visualDescription"
+            else -> visualDescription
+        }
+        val prompt = "$style, $subject"
+        val generationId = leonardoClient.createGeneration(prompt)
         val imageUrl = leonardoClient.waitForGeneration(generationId)
         val rawBytes = leonardoClient.downloadImage(imageUrl)
 
@@ -91,19 +98,36 @@ class ImageGenerationService(
     }
 
     /**
-     * Trims transparent pixels from the image and resizes it to 64×64.
+     * Removes white background, trims transparent pixels, and resizes the image to 64x64.
      * Returns the result as a PNG byte array.
      */
     private fun processImage(rawBytes: ByteArray): ByteArray {
         val image = ImageIO.read(ByteArrayInputStream(rawBytes))
             ?: error("Could not decode image bytes")
 
-        val trimmed = trimTransparentPixels(image)
+        val noBackground = removeWhiteBackground(image)
+        val trimmed = trimTransparentPixels(noBackground)
         val resized = resizeTo64x64(trimmed)
 
         val out = ByteArrayOutputStream()
         ImageIO.write(resized, "PNG", out)
         return out.toByteArray()
+    }
+
+    private fun removeWhiteBackground(image: BufferedImage): BufferedImage {
+        val result = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
+        val whiteRgb = -1 // Color.WHITE.rgb
+        for (y in 0 until image.height) {
+            for (x in 0 until image.width) {
+                val pixel = image.getRGB(x, y)
+                if (pixel == whiteRgb) {
+                    result.setRGB(x, y, 0) // Set transparent
+                } else {
+                    result.setRGB(x, y, pixel)
+                }
+            }
+        }
+        return result
     }
 
     private fun trimTransparentPixels(image: BufferedImage): BufferedImage {
