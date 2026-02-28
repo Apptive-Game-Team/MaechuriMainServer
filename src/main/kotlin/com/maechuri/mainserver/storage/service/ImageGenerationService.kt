@@ -22,6 +22,7 @@ class ImageGenerationService(
     private val suspectRepository: SuspectRepository,
     private val clueRepository: ClueRepository,
     private val databaseClient: DatabaseClient,
+    private val backgroundRemovalService: BackgroundRemovalService,
 ) {
 
     /**
@@ -72,7 +73,7 @@ class ImageGenerationService(
         objectId: Long,
         visualDescription: String,
     ): String {
-        val style = "64x64 pixel art, simple sprite, white background"
+        val style = "64x64 pixel art, simple sprite"
         val subject = when (type) {
             "suspect" -> "full body character sprite, $visualDescription"
             "clue" -> "item sprite, $visualDescription"
@@ -98,36 +99,33 @@ class ImageGenerationService(
     }
 
     /**
-     * Removes white background, trims transparent pixels, and resizes the image to 64x64.
+     * Removes background, trims transparent pixels, and resizes the image to 64x64.
      * Returns the result as a PNG byte array.
      */
-    private fun processImage(rawBytes: ByteArray): ByteArray {
+    private suspend fun processImage(rawBytes: ByteArray): ByteArray {
         val image = ImageIO.read(ByteArrayInputStream(rawBytes))
-            ?: error("Could not decode image bytes")
+            ?: error("Could not decode image bytes from Leonardo.ai")
 
-        val noBackground = removeWhiteBackground(image)
-        val trimmed = trimTransparentPixels(noBackground)
-        val resized = resizeTo64x64(trimmed)
-
-        val out = ByteArrayOutputStream()
-        ImageIO.write(resized, "PNG", out)
-        return out.toByteArray()
-    }
-
-    private fun removeWhiteBackground(image: BufferedImage): BufferedImage {
-        val result = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
-        val whiteRgb = -1 // Color.WHITE.rgb
-        for (y in 0 until image.height) {
-            for (x in 0 until image.width) {
-                val pixel = image.getRGB(x, y)
-                if (pixel == whiteRgb) {
-                    result.setRGB(x, y, 0) // Set transparent
-                } else {
-                    result.setRGB(x, y, pixel)
-                }
-            }
+        // Resize first to reduce payload size for the background removal API
+        val resizedImage = resizeTo64x64(image)
+        val resizedBytes = ByteArrayOutputStream().use {
+            ImageIO.write(resizedImage, "png", it)
+            it.toByteArray()
         }
-        return result
+
+        // Remove background from the resized image
+        val noBgBytes = backgroundRemovalService.removeBackground(resizedBytes)
+
+        // Trim the result
+        val finalImage = ImageIO.read(ByteArrayInputStream(noBgBytes))
+            ?: error("Could not decode image after background removal")
+        val trimmedImage = trimTransparentPixels(finalImage)
+
+        // Encode final result
+        return ByteArrayOutputStream().use {
+            ImageIO.write(trimmedImage, "png", it)
+            it.toByteArray()
+        }
     }
 
     private fun trimTransparentPixels(image: BufferedImage): BufferedImage {
