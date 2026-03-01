@@ -74,6 +74,8 @@ fun Clue.toDomain(location: DomainLocation): DomainClue {
         relatedSuspectIds = relatedSuspectIdsList,
         x = this.x,
         y = this.y,
+        visualDescription = this.visualDescription,
+        assetsUrl = this.assetsUrl,
     )
 }
 
@@ -93,6 +95,8 @@ fun Suspect.toDomain(): DomainSuspect {
         lyingPattern = this.lyingPattern,
         x = this.x,
         y = this.y,
+        visualDescription = this.visualDescription,
+        assetsUrl = this.assetsUrl,
     )
 }
 
@@ -162,6 +166,8 @@ fun DomainClue.toEntity(scenarioId: Long): Clue {
         relatedSuspectIds = this.relatedSuspectIds?.let { objectMapper.writeValueAsString(it) },
         x = this.x,
         y = this.y,
+        visualDescription = this.visualDescription,
+        assetsUrl = this.assetsUrl,
     )
 }
 
@@ -182,6 +188,8 @@ fun DomainSuspect.toEntity(scenarioId: Long): Suspect {
         lyingPattern = this.lyingPattern,
         x = this.x,
         y = this.y,
+        visualDescription = this.visualDescription,
+        assetsUrl = this.assetsUrl,
     )
 }
 

@@ -39,3 +39,9 @@ CREATE TABLE IF NOT EXISTS game_session_record (
 
 CREATE INDEX IF NOT EXISTS idx_game_session_record_session_id ON game_session_record(game_session_id);
 CREATE INDEX IF NOT EXISTS idx_game_session_record_session_scenario ON game_session_record(game_session_id, scenario_id);
+
+ALTER TABLE suspect ADD COLUMN IF NOT EXISTS visual_description TEXT;
+ALTER TABLE suspect ADD COLUMN IF NOT EXISTS assets_url VARCHAR(512);
+
+ALTER TABLE clue ADD COLUMN IF NOT EXISTS visual_description TEXT;
+ALTER TABLE clue ADD COLUMN IF NOT EXISTS assets_url VARCHAR(512);

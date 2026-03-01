@@ -6,6 +6,7 @@ import com.maechuri.mainserver.game.service.AssetService
 import com.maechuri.mainserver.scenario.provider.ScenarioProvider
 import com.maechuri.mainserver.scenario.repository.ScenarioRepository
 import com.maechuri.mainserver.scenario.service.ScenarioGenerationService
+import com.maechuri.mainserver.storage.service.ImageGenerationService
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.ResponseEntity
@@ -22,6 +23,7 @@ class AdminController(
     private val scenarioRepository: ScenarioRepository,
     private val scenarioGenerationService: ScenarioGenerationService,
     private val adminService: AdminService,
+    private val imageGenerationService: ImageGenerationService,
 ) {
 
     @GetMapping("/", "")
@@ -223,6 +225,13 @@ class AdminController(
     ): ResponseEntity<Void> {
         adminService.updateCluePosition(scenarioId, clueId, body.x, body.y)
         return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/scenarios/{scenarioId}/generate-images")
+    @ResponseBody
+    suspend fun generateImages(@PathVariable scenarioId: Long): ResponseEntity<Map<String, String>> {
+        imageGenerationService.generateImagesForScenario(scenarioId)
+        return ResponseEntity.ok().body(mapOf("message" to "Image generation completed for scenario $scenarioId"))
     }
 }
 

@@ -231,6 +231,19 @@
             </div>
         </div>
 
+        <!-- Image Generation -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Image Generation</h2>
+            </div>
+            <div class="card-body">
+                <p>Generate visual assets for suspects and clues in this scenario.</p>
+                <button id="generate-images-btn" class="btn btn-primary">Generate Images</button>
+                <div id="image-generation-message" class="mt-2 small" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- Locations -->
         <div class="card mb-4">
             <div class="card-header">
                 <h2>Locations</h2>
@@ -707,6 +720,28 @@
     applyZoom();
     drawMap();
     /*]]>*/
+</script>
+<script>
+    document.getElementById('generate-images-btn').addEventListener('click', async () => {
+        const button = document.getElementById('generate-images-btn');
+        const messageDiv = document.getElementById('image-generation-message');
+        button.disabled = true;
+        messageDiv.style.display = 'block';
+        messageDiv.className = 'mt-2 small text-info';
+        messageDiv.textContent = 'Generating images... This may take a while.';
+
+        try {
+            const response = await axios.post(`/admin/scenarios/${SCENARIO_ID}/generate-images`);
+            messageDiv.className = 'mt-2 small text-success';
+            messageDiv.textContent = response.data.message || 'Image generation completed successfully!';
+        } catch (error) {
+            messageDiv.className = 'mt-2 small text-danger';
+            messageDiv.textContent = 'Failed to generate images: ' + (error.response?.data?.message || error.message);
+        } finally {
+            button.disabled = false;
+            setTimeout(() => { messageDiv.style.display = 'none'; }, 5000);
+        }
+    });
 </script>
 
 </body>

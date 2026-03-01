@@ -19,4 +19,6 @@ data class Suspect(
     val lyingPattern: String,
     val x: Short?,
     val y: Short?,
+    val visualDescription: String? = null,
+    val assetsUrl: String? = null,
 )
