@@ -19,10 +19,8 @@ class RemoveBgService(
             return removeBgClient.removeBackground(imageBytes)
         } catch (e: WebClientResponseException) {
             val errorBody = e.responseBodyAsString
-            logger.error("에러 발생! 상태코드: ${e.statusCode}, 메시지: $errorBody")
+            logger.error("Background removal failed. statusCode=${e.statusCode}, responseBody=$errorBody")
             return imageBytes
-        } catch (e: Exception) {
-            throw e
         }
     }
 }
