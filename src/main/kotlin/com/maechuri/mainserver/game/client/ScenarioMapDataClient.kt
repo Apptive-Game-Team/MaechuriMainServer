@@ -7,6 +7,15 @@ import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
 import java.time.format.DateTimeFormatter
 
+private const val MAP_WIDTH = 50
+private const val MAP_HEIGHT = 50
+
+private const val TILE_EMPTY = 0
+private const val TILE_WALL = 1
+private const val TILE_FLOOR = 2
+
+private const val OBJECT_ORDER = 3
+
 @Primary
 @Component
 class ScenarioMapDataClient(
@@ -22,141 +31,93 @@ class ScenarioMapDataClient(
             AssetInfo(id = "2", imageUrl = "https://s3.yunseong.dev/maechuri/objects/tile_floor.json")
         )
 
-        // For simplicity, we'll assume a fixed-size map for now.
-        // A more robust implementation would calculate the bounding box of all scenario maps.
-        val mapWidth = 50
-        val mapHeight = 50
+        val floorTiles = Array(MAP_HEIGHT) { IntArray(MAP_WIDTH) { TILE_EMPTY } }
+        val wallTiles = Array(MAP_HEIGHT) { IntArray(MAP_WIDTH) { TILE_WALL } }
+
+        // Populate layers based on Location entities
+        scenario.locations.forEach { loc ->
+            for (y in loc.y.toInt() until (loc.y + loc.height)) {
+                for (x in loc.x.toInt() until (loc.x + loc.width)) {
+                    if (y in 0 until MAP_HEIGHT && x in 0 until MAP_WIDTH) {
+                        floorTiles[y][x] = TILE_FLOOR
+                        wallTiles[y][x] = TILE_EMPTY
+                    }
+                }
+            }
+        }
 
         val floorLayer = Layer(
             orderInLayer = 1,
             name = "floor",
             type = listOf("Non-Interactable", "Passable"),
-            tileMap = List(mapHeight) { MutableList(mapWidth) { 0 } } // Initialize with empty tiles
+            tileMap = floorTiles.map { it.toList() }
         )
 
         val wallLayer = Layer(
             orderInLayer = 2,
             name = "wall",
             type = listOf("Non-Interactable", "Non-Passable", "Blocks-Vision"),
-            tileMap = List(mapHeight) { MutableList(mapWidth) { 1 } } // Initialize with solid walls
+            tileMap = wallTiles.map { it.toList() }
         )
-
-        // Populate layers based on ScenarioMap entities
-        scenario.maps.forEach { scenarioMap ->
-            for (y in scenarioMap.y until (scenarioMap.y + scenarioMap.height)) {
-                for (x in scenarioMap.x until (scenarioMap.x + scenarioMap.width)) {
-                    if (y >= 0 && y < mapHeight && x >= 0 && x < mapWidth) {
-                        // Fill floor layer with floor tiles in room/corridor areas
-                        (floorLayer.tileMap[y.toInt()] as MutableList<Int>)[x.toInt()] = 2 // floor tile
-
-                        // Clear wall layer in room/corridor areas
-                        (wallLayer.tileMap[y.toInt()] as MutableList<Int>)[x.toInt()] = 0 // empty space
-                    }
-                }
-            }
-        }
 
         val objects = mutableListOf<MapObject>()
         val occupiedCoordinates = mutableSetOf<Position>()
 
+        fun placeObject(id: String, name: String, type: List<String>, pos: Position, assetUrl: String) {
+            objects.add(MapObject(id = id, orderInLayer = OBJECT_ORDER, name = name, type = type, position = pos))
+            assets.add(AssetInfo(id = id, imageUrl = assetUrl))
+            occupiedCoordinates.add(pos)
+        }
+
         scenario.suspects.forEach { suspect ->
             if (suspect.x != null && suspect.y != null) {
-                val objectId = "s:${suspect.suspectId}"
-                val pos = Position(x = suspect.x.toInt(), y = suspect.y.toInt())
-                objects.add(
-                    MapObject(
-                        id = objectId,
-                        orderInLayer = 3,
-                        name = suspect.name,
-                        type = listOf("Interactable", "Non-Passable"),
-                        position = pos
-                    )
+                placeObject(
+                    id = "s:${suspect.suspectId}",
+                    name = suspect.name,
+                    type = listOf("Interactable", "Non-Passable"),
+                    pos = Position(x = suspect.x.toInt(), y = suspect.y.toInt()),
+                    assetUrl = "https://s3.yunseong.dev/maechuri/objects/suspect.json"
                 )
-                assets.add(AssetInfo(id = objectId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/suspect.json"))
-                occupiedCoordinates.add(pos)
             }
         }
 
         scenario.clues.forEach { clue ->
             if (clue.x != null && clue.y != null) {
-                val objectId = "c:${clue.clueId}"
-                val pos = Position(x = clue.x.toInt(), y = clue.y.toInt())
-                objects.add(
-                    MapObject(
-                        id = objectId,
-                        orderInLayer = 3,
-                        name = clue.name,
-                        type = listOf("Interactable", "Non-Passable"),
-                        position = pos
-                    )
+                placeObject(
+                    id = "c:${clue.clueId}",
+                    name = clue.name,
+                    type = listOf("Interactable", "Non-Passable"),
+                    pos = Position(x = clue.location.x + clue.x.toInt(), y = clue.location.y + clue.y.toInt()),
+                    assetUrl = "https://s3.yunseong.dev/maechuri/objects/memo.json"
                 )
-                assets.add(AssetInfo(id = objectId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/memo.json"))
-                occupiedCoordinates.add(pos)
             }
         }
 
         // Find available floor spots for the player
         val availableSpots = mutableListOf<Position>()
-        floorLayer.tileMap.forEachIndexed { y, row ->
+        floorTiles.forEachIndexed { y, row ->
             row.forEachIndexed { x, tileId ->
-                if (tileId == 2) { // '2' is the floor tile
+                if (tileId == TILE_FLOOR) {
                     val pos = Position(x, y)
-                    if (!occupiedCoordinates.contains(pos)) {
+                    if (pos !in occupiedCoordinates) {
                         availableSpots.add(pos)
                     }
                 }
             }
         }
 
-        // Add player at a random available spot
-        if (availableSpots.isNotEmpty()) {
-            val randomSpot = availableSpots.random()
-            val playerId = "p:1"
-            objects.add(
-                MapObject(
-                    id = playerId,
-                    orderInLayer = 3,
-                    name = "플레이어",
-                    type = listOf("Interactable", "Passable"), // Player is usually passable
-                    position = randomSpot
-                )
-            )
-            assets.add(AssetInfo(id = playerId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/player.json"))
-            availableSpots.remove(randomSpot)
-        }
+        // Place player, detective, investigator at random available spots
+        val npcPlacements = listOf(
+            Triple("p:1", "플레이어", "https://s3.yunseong.dev/maechuri/objects/player.json") to listOf("Interactable", "Passable"),
+            Triple("d:1", "형사", "https://s3.yunseong.dev/maechuri/objects/detective.json") to listOf("Interactable", "Non-Passable"),
+            Triple("i:1", "조사원", "https://s3.yunseong.dev/maechuri/objects/investigator.json") to listOf("Interactable", "Non-Passable"),
+        )
 
-        // Add detective at a random available spot
-        if (availableSpots.isNotEmpty()) {
-            val randomSpot = availableSpots.random()
-            val detectiveId = "d:1"
-            objects.add(
-                MapObject(
-                    id = detectiveId,
-                    orderInLayer = 3,
-                    name = "형사",
-                    type = listOf("Interactable", "Non-Passable"),
-                    position = randomSpot
-                )
-            )
-            assets.add(AssetInfo(id = detectiveId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/detective.json"))
-            availableSpots.remove(randomSpot)
-        }
-
-        // Add investigator at a random available spot
-        if (availableSpots.isNotEmpty()) {
-            val randomSpot = availableSpots.random()
-            val investigatorId = "i:1"
-            objects.add(
-                MapObject(
-                    id = investigatorId,
-                    orderInLayer = 3,
-                    name = "조사원",
-                    type = listOf("Interactable", "Non-Passable"),
-                    position = randomSpot
-                )
-            )
-            assets.add(AssetInfo(id = investigatorId, imageUrl = "https://s3.yunseong.dev/maechuri/objects/investigator.json"))
-            availableSpots.remove(randomSpot)
+        for ((info, type) in npcPlacements) {
+            if (availableSpots.isEmpty()) break
+            val spot = availableSpots.random()
+            placeObject(id = info.first, name = info.second, type = type, pos = spot, assetUrl = info.third)
+            availableSpots.remove(spot)
         }
 
         return MapDataResponse(
