@@ -3,7 +3,6 @@ package com.maechuri.mainserver.game.client
 import com.maechuri.mainserver.scenario.domain.Clue
 import com.maechuri.mainserver.scenario.domain.Location
 import com.maechuri.mainserver.scenario.domain.Scenario
-import com.maechuri.mainserver.scenario.domain.ScenarioMap
 import com.maechuri.mainserver.scenario.domain.Suspect
 import com.maechuri.mainserver.scenario.entity.Difficulty
 import com.maechuri.mainserver.scenario.provider.ScenarioProvider
@@ -30,7 +29,7 @@ class ScenarioMapDataClientTest {
     fun `getMapData returns correctly mapped data`() = runBlocking {
         // Given
         val scenarioId = 1L
-        val mockLocation = Location(locationId = 1L, name = "Test Room", canSee = emptyList(), cannotSee = emptyList(), accessRequires = null)
+        val mockLocation = Location(locationId = 1L, name = "Test Room", type = "room", x = 2, y = 2, width = 10, height = 10, canSee = emptyList(), cannotSee = emptyList(), accessRequires = null)
         val mockScenario = Scenario(
             scenarioId = scenarioId,
             difficulty = Difficulty.easy,
@@ -57,9 +56,6 @@ class ScenarioMapDataClientTest {
             suspects = listOf(
                 Suspect(suspectId = 101L, name = "Test Suspect", role = "Witness", age = 30, gender = "Male", description = "A suspect", isCulprit = false, motive = null, alibiSummary = "Alibi", speechStyle = "Polite", emotionalTendency = "Calm", lyingPattern = "None", x = 10, y = 10)
             ),
-            maps = listOf(
-                ScenarioMap(mapId = 1L, type = "room", name = "Test Room", x = 2, y = 2, width = 10, height = 10, extraData = emptyMap())
-            )
         )
 
         Mockito.`when`(scenarioProvider.findScenario(anyLong())).thenAnswer {
@@ -111,8 +107,9 @@ class ScenarioMapDataClientTest {
         val clueObject = response.map.objects.find { it.id == "c:1" }
         assertNotNull(clueObject)
         assertEquals("Test Clue", clueObject.name)
-        assertEquals(5, clueObject.position.x)
-        assertEquals(5, clueObject.position.y)
+        // Clue position is location-relative: location(2,2) + clue(5,5) = (7,7)
+        assertEquals(7, clueObject.position.x)
+        assertEquals(7, clueObject.position.y)
 
         val playerObject = response.map.objects.find { it.id == "p:1" }
         assertNotNull(playerObject)
@@ -125,7 +122,7 @@ class ScenarioMapDataClientTest {
     fun `getTodayMapData delegates to getMapData with id from todayScenarioIdProvider`() = runBlocking {
         // Given
         val todayScenarioId = 7L
-        val mockLocation = Location(locationId = 1L, name = "Today Room", canSee = emptyList(), cannotSee = emptyList(), accessRequires = null)
+        val mockLocation = Location(locationId = 1L, name = "Today Room", type = "room", x = 0, y = 0, width = 5, height = 5, canSee = emptyList(), cannotSee = emptyList(), accessRequires = null)
         val mockScenario = Scenario(
             scenarioId = todayScenarioId,
             difficulty = Difficulty.easy,
@@ -148,9 +145,6 @@ class ScenarioMapDataClientTest {
             locations = listOf(mockLocation),
             clues = emptyList(),
             suspects = emptyList(),
-            maps = listOf(
-                ScenarioMap(mapId = 1L, type = "room", name = "Today Room", x = 0, y = 0, width = 5, height = 5, extraData = emptyMap())
-            )
         )
 
         whenever(todayScenarioIdProvider.getTodayScenarioId()).thenReturn(todayScenarioId)

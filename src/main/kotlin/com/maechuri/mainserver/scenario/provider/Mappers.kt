@@ -1,7 +1,10 @@
 package com.maechuri.mainserver.scenario.provider
 
-import com.maechuri.mainserver.scenario.domain.*
-import com.maechuri.mainserver.scenario.entity.ScenarioMap
+import com.maechuri.mainserver.scenario.domain.Clue as DomainClue
+import com.maechuri.mainserver.scenario.domain.Fact as DomainFact
+import com.maechuri.mainserver.scenario.domain.Location as DomainLocation
+import com.maechuri.mainserver.scenario.domain.Scenario as DomainScenario
+import com.maechuri.mainserver.scenario.domain.Suspect as DomainSuspect
 import com.maechuri.mainserver.scenario.entity.Clue
 import com.maechuri.mainserver.scenario.entity.Fact
 import com.maechuri.mainserver.scenario.entity.Location
@@ -16,8 +19,8 @@ import java.sql.Timestamp
 val objectMapper: ObjectMapper = jacksonObjectMapper()
 
 // Entity to Domain Mappings
-fun Scenario.toDomain(): com.maechuri.mainserver.scenario.domain.Scenario {
-    return com.maechuri.mainserver.scenario.domain.Scenario(
+fun Scenario.toDomain(): DomainScenario {
+    return DomainScenario(
         scenarioId = this.scenarioId,
         difficulty = this.difficulty,
         theme = this.theme,
@@ -39,23 +42,28 @@ fun Scenario.toDomain(): com.maechuri.mainserver.scenario.domain.Scenario {
     )
 }
 
-fun Location.toDomain(): com.maechuri.mainserver.scenario.domain.Location {
+fun Location.toDomain(): DomainLocation {
     val canSeeList: List<Long> = if (this.canSee.isNotBlank()) objectMapper.readValue(this.canSee) else emptyList()
     val cannotSeeList: List<Long> = if (this.cannotSee.isNotBlank()) objectMapper.readValue(this.cannotSee) else emptyList()
 
-    return com.maechuri.mainserver.scenario.domain.Location(
+    return DomainLocation(
         locationId = this.locationId,
         name = this.name,
+        type = this.type,
+        x = this.x,
+        y = this.y,
+        width = this.width,
+        height = this.height,
         canSee = canSeeList,
         cannotSee = cannotSeeList,
         accessRequires = this.accessRequires
     )
 }
 
-fun Clue.toDomain(location: com.maechuri.mainserver.scenario.domain.Location): com.maechuri.mainserver.scenario.domain.Clue {
+fun Clue.toDomain(location: DomainLocation): DomainClue {
     val relatedSuspectIdsList: List<Long>? = this.relatedSuspectIds?.let { if (it.isNotBlank()) objectMapper.readValue(it) else emptyList() }
 
-    return com.maechuri.mainserver.scenario.domain.Clue(
+    return DomainClue(
         clueId = this.clueId,
         name = this.name,
         location = location,
@@ -69,8 +77,8 @@ fun Clue.toDomain(location: com.maechuri.mainserver.scenario.domain.Location): c
     )
 }
 
-fun Suspect.toDomain(): com.maechuri.mainserver.scenario.domain.Suspect {
-    return com.maechuri.mainserver.scenario.domain.Suspect(
+fun Suspect.toDomain(): DomainSuspect {
+    return DomainSuspect(
         suspectId = this.suspectId,
         name = this.name,
         role = this.role,
@@ -88,10 +96,10 @@ fun Suspect.toDomain(): com.maechuri.mainserver.scenario.domain.Suspect {
     )
 }
 
-fun Fact.toDomain(): com.maechuri.mainserver.scenario.domain.Fact {
+fun Fact.toDomain(): DomainFact {
     val contentMap: Map<String, Any> = if (this.content.isNotBlank()) objectMapper.readValue(this.content) else emptyMap()
 
-    return com.maechuri.mainserver.scenario.domain.Fact(
+    return DomainFact(
         scenarioId = this.scenarioId,
         suspectId = this.suspectId,
         factId = this.factId,
@@ -101,22 +109,8 @@ fun Fact.toDomain(): com.maechuri.mainserver.scenario.domain.Fact {
     )
 }
 
-fun ScenarioMap.toDomain(): com.maechuri.mainserver.scenario.domain.ScenarioMap {
-    val extraDataMap: Map<String, Any> = if (this.extraData.isNotBlank()) objectMapper.readValue(this.extraData) else emptyMap()
-    return com.maechuri.mainserver.scenario.domain.ScenarioMap(
-        mapId = this.mapId,
-        type = this.type,
-        name = this.name,
-        x = this.x,
-        y = this.y,
-        width = this.width,
-        height = this.height,
-        extraData = extraDataMap,
-    )
-}
-
 // Domain to Entity Mappings
-fun com.maechuri.mainserver.scenario.domain.Scenario.toEntity(): Scenario {
+fun DomainScenario.toEntity(): Scenario {
     return Scenario(
         scenarioId = this.scenarioId,
         difficulty = this.difficulty,
@@ -139,18 +133,23 @@ fun com.maechuri.mainserver.scenario.domain.Scenario.toEntity(): Scenario {
     )
 }
 
-fun com.maechuri.mainserver.scenario.domain.Location.toEntity(scenarioId: Long): Location {
+fun DomainLocation.toEntity(scenarioId: Long): Location {
     return Location(
         scenarioId = scenarioId,
         locationId = this.locationId,
         name = this.name,
+        type = this.type,
+        x = this.x,
+        y = this.y,
+        width = this.width,
+        height = this.height,
         canSee = objectMapper.writeValueAsString(this.canSee),
         cannotSee = objectMapper.writeValueAsString(this.cannotSee),
         accessRequires = this.accessRequires
     )
 }
 
-fun com.maechuri.mainserver.scenario.domain.Clue.toEntity(scenarioId: Long): Clue {
+fun DomainClue.toEntity(scenarioId: Long): Clue {
     return Clue(
         scenarioId = scenarioId,
         clueId = this.clueId,
@@ -166,7 +165,7 @@ fun com.maechuri.mainserver.scenario.domain.Clue.toEntity(scenarioId: Long): Clu
     )
 }
 
-fun com.maechuri.mainserver.scenario.domain.Suspect.toEntity(scenarioId: Long): Suspect {
+fun DomainSuspect.toEntity(scenarioId: Long): Suspect {
     return Suspect(
         scenarioId = scenarioId,
         suspectId = this.suspectId,
@@ -186,7 +185,7 @@ fun com.maechuri.mainserver.scenario.domain.Suspect.toEntity(scenarioId: Long): 
     )
 }
 
-fun com.maechuri.mainserver.scenario.domain.Fact.toEntity(): Fact {
+fun DomainFact.toEntity(): Fact {
     return Fact(
         scenarioId = this.scenarioId,
         suspectId = this.suspectId,
@@ -194,19 +193,5 @@ fun com.maechuri.mainserver.scenario.domain.Fact.toEntity(): Fact {
         threshold = this.threshold,
         type = this.type,
         content = objectMapper.writeValueAsString(this.content),
-    )
-}
-
-fun com.maechuri.mainserver.scenario.domain.ScenarioMap.toEntity(scenarioId: Long): ScenarioMap {
-    return ScenarioMap(
-        scenarioId = scenarioId,
-        mapId = this.mapId,
-        type = this.type,
-        name = this.name,
-        x = this.x,
-        y = this.y,
-        width = this.width,
-        height = this.height,
-        extraData = objectMapper.writeValueAsString(this.extraData),
     )
 }
