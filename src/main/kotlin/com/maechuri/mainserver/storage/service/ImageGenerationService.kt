@@ -73,22 +73,27 @@ class ImageGenerationService(
         objectId: Long,
         visualDescription: String,
     ): String {
-        val style = "64x64 pixel art, simple sprite"
+        val style = "single 2D game asset, isolated on a pure solid white background, flat vector style, bold outlines, minimalist, no background elements, no scenery, isolated on a pure solid white background, clean minimalist background, no background elements, blank background"
+
         val subject = when (type) {
-            "suspect" -> "full body character sprite, $visualDescription"
-            "clue" -> "item sprite, $visualDescription"
-            else -> visualDescription
+            "suspect" -> "A single full-body character sprite of $visualDescription, standing alone in the center, front view, no extra props"
+            "clue" -> "One single item sprite of $visualDescription, centered, isolated, no other objects in frame"
+            else -> "A single $visualDescription centered on white background"
         }
         val prompt = "$style, $subject"
         val generationId = leonardoClient.createGeneration(prompt)
         val imageUrl = leonardoClient.waitForGeneration(generationId)
         val rawBytes = leonardoClient.downloadImage(imageUrl)
 
+
+
         val processedBytes = processImage(rawBytes)
 
+        val rawKey = "$type/$scenarioId/raw_$objectId.png"
         val pngKey = "$type/$scenarioId/$objectId.png"
         val jsonKey = "$type/$scenarioId/$objectId.json"
 
+        minioService.uploadObject(rawKey, rawBytes, "image/png")
         minioService.uploadObject(pngKey, processedBytes, "image/png")
 
         val permanentPngUrl = minioService.getPermanentUrl(pngKey)
