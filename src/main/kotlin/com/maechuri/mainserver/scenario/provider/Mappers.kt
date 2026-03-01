@@ -66,6 +66,8 @@ fun Clue.toDomain(location: com.maechuri.mainserver.scenario.domain.Location): c
         relatedSuspectIds = relatedSuspectIdsList,
         x = this.x,
         y = this.y,
+        visualDescription = this.visualDescription,
+        assetsUrl = this.assetsUrl,
     )
 }
 
@@ -85,6 +87,8 @@ fun Suspect.toDomain(): com.maechuri.mainserver.scenario.domain.Suspect {
         lyingPattern = this.lyingPattern,
         x = this.x,
         y = this.y,
+        visualDescription = this.visualDescription,
+        assetsUrl = this.assetsUrl,
     )
 }
 
@@ -163,6 +167,8 @@ fun com.maechuri.mainserver.scenario.domain.Clue.toEntity(scenarioId: Long): Clu
         relatedSuspectIds = this.relatedSuspectIds?.let { objectMapper.writeValueAsString(it) },
         x = this.x,
         y = this.y,
+        visualDescription = this.visualDescription,
+        assetsUrl = this.assetsUrl,
     )
 }
 
@@ -183,6 +189,8 @@ fun com.maechuri.mainserver.scenario.domain.Suspect.toEntity(scenarioId: Long): 
         lyingPattern = this.lyingPattern,
         x = this.x,
         y = this.y,
+        visualDescription = this.visualDescription,
+        assetsUrl = this.assetsUrl,
     )
 }
 
