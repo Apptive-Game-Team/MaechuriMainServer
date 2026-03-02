@@ -7,6 +7,7 @@ import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
@@ -24,6 +25,7 @@ class ImageGenerationService(
     private val clueRepository: ClueRepository,
     private val databaseClient: DatabaseClient,
     private val backgroundRemovalService: BackgroundRemovalService,
+    private val webClient: WebClient,
 ) {
 
     /**
@@ -132,7 +134,7 @@ class ImageGenerationService(
             ?: error("Could not decode image bytes from Leonardo.ai")
 
         // Resize first to reduce payload size for the background removal API
-        val resizedImage = resizeTo64x64(image)
+        val resizedImage = resizeTo256x256(image)
         val resizedBytes = ByteArrayOutputStream().use {
             ImageIO.write(resizedImage, "png", it)
             it.toByteArray()
@@ -175,11 +177,11 @@ class ImageGenerationService(
         return image.getSubimage(minX, minY, maxX - minX + 1, maxY - minY + 1)
     }
 
-    private fun resizeTo64x64(image: BufferedImage): BufferedImage {
-        val result = BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB)
+    private fun resizeTo256x256(image: BufferedImage): BufferedImage {
+        val result = BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB)
         val g2d = result.createGraphics()
         g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
-        g2d.drawImage(image, 0, 0, 64, 64, null)
+        g2d.drawImage(image, 0, 0, 256, 256, null)
         g2d.dispose()
         return result
     }
