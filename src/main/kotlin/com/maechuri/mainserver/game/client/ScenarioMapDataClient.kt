@@ -76,7 +76,7 @@ class ScenarioMapDataClient(
                     name = suspect.name,
                     type = listOf("Interactable", "Non-Passable"),
                     pos = Position(x = suspect.x.toInt(), y = suspect.y.toInt()),
-                    assetUrl = "https://s3.yunseong.dev/maechuri/objects/suspect.json"
+                    assetUrl = suspect.assetsUrl ?: "https://s3.yunseong.dev/maechuri/objects/suspect.json"
                 )
             }
         }
@@ -88,7 +88,7 @@ class ScenarioMapDataClient(
                     name = clue.name,
                     type = listOf("Interactable", "Non-Passable"),
                     pos = Position(x = clue.location.x + clue.x.toInt(), y = clue.location.y + clue.y.toInt()),
-                    assetUrl = "https://s3.yunseong.dev/maechuri/objects/memo.json"
+                    assetUrl = clue.assetsUrl ?: "https://s3.yunseong.dev/maechuri/objects/memo.json"
                 )
             }
         }
