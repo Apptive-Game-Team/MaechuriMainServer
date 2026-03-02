@@ -16,7 +16,7 @@ class SecurityConfig {
     @Bean
     fun securityWebFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
         return http
-            .cors { it.configurationSource(corsConfigurationSource()) }
+            .cors { }
             .csrf { it.disable() }
             .authorizeExchange {
                 it.anyExchange().permitAll()
