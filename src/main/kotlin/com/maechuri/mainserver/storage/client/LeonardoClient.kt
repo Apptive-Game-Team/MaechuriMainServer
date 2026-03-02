@@ -4,6 +4,7 @@ import com.maechuri.mainserver.storage.config.LeonardoProperties
 import kotlinx.coroutines.delay
 import mu.KotlinLogging
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.awaitBodyOrNull
@@ -17,6 +18,13 @@ class LeonardoClient(private val leonardoProperties: LeonardoProperties) {
 
     private val webClient: WebClient by lazy {
         WebClient.builder()
+            .exchangeStrategies(
+                ExchangeStrategies.builder()
+                    .codecs { config ->
+                        config.defaultCodecs().maxInMemorySize(10 * 1024 * 1024) // 10MB
+                    }
+                    .build()
+            )
             .baseUrl(leonardoProperties.baseUrl)
             .defaultHeader("Authorization", "Bearer ${leonardoProperties.apiKey}")
             .defaultHeader("Content-Type", "application/json")
@@ -33,10 +41,11 @@ class LeonardoClient(private val leonardoProperties: LeonardoProperties) {
     suspend fun createGeneration(prompt: String): String {
         val sanitizedPrompt = prompt.take(950).replace(Regex("[\"\\\\]"), "")
         val body = mapOf(
+            "contrast" to 3.5,
             "prompt" to sanitizedPrompt,
             "modelId" to leonardoProperties.modelId,
-            "width" to 512,
-            "height" to 512,
+            "width" to 1024,
+            "height" to 1024,
             "num_images" to 1
         )
         val response = webClient.post()
