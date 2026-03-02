@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.security.web.server.header.ReferrerPolicyServerHttpHeadersWriter
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsConfigurationSource
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
@@ -20,6 +21,11 @@ class SecurityConfig {
             .csrf { it.disable() }
             .authorizeExchange {
                 it.anyExchange().permitAll()
+            }
+            .headers { headers ->
+                headers.referrerPolicy {
+                    ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.ORIGIN_WHEN_CROSS_ORIGIN
+                }
             }
             .build()
     }
