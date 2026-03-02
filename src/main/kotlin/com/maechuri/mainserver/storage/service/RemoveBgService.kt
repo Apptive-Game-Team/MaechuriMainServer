@@ -6,21 +6,14 @@ import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException
 
-private val logger = KotlinLogging.logger {}
+internal val logger = KotlinLogging.logger {}
 
 @Service
-@Primary
 class RemoveBgService(
     private val removeBgClient: RemoveBgClient
 
 ) : BackgroundRemovalService {
     override suspend fun removeBackground(imageBytes: ByteArray): ByteArray {
-        try {
-            return removeBgClient.removeBackground(imageBytes)
-        } catch (e: WebClientResponseException) {
-            val errorBody = e.responseBodyAsString
-            logger.error("Background removal failed. statusCode=${e.statusCode}, responseBody=$errorBody")
-            return imageBytes
-        }
+        return removeBgClient.removeBackground(imageBytes)
     }
 }
