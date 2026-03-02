@@ -28,10 +28,7 @@ class SecurityConfig {
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration()
         configuration.allowedOriginPatterns = listOf(
-            "http://localhost:5173",
-            "http://localhost:*",
-            "null",
-            "https://apptive-game-team.github.io"
+            "https://maechuri.com"
         )
         configuration.allowedMethods = listOf("*")
         configuration.allowedHeaders = listOf("*")
