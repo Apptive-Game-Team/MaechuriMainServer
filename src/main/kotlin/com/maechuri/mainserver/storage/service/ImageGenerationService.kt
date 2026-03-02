@@ -7,6 +7,7 @@ import kotlinx.coroutines.reactor.awaitSingle
 import mu.KotlinLogging
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
@@ -76,16 +77,35 @@ class ImageGenerationService(
         val style = "single 2D game asset, isolated on a pure solid white background, flat vector style, bold outlines, minimalist, no background elements, no scenery, isolated on a pure solid white background, clean minimalist background, no background elements, blank background"
 
         val subject = when (type) {
-            "suspect" -> "A single full-body character sprite of $visualDescription, standing alone in the center, front view, no extra props"
+            "suspect" -> """
+                A single full-body SD (chibi-style) character sprite of $visualDescription,
+                super-deformed proportions with a large head and small body,
+                cute and simplified design,
+                entire body fully visible from head to toe,
+                from the tips of the feet to the top of the head clearly shown,
+                feet fully visible and not cut off,
+                standing alone in the exact center of the frame,
+                front-facing view,
+                no zoom, no close-up,
+                no cropping, no cut-off limbs,
+                no extra props
+            """.trimIndent()
             "clue" -> "One single item sprite of $visualDescription, centered, isolated, no other objects in frame"
             else -> "A single $visualDescription centered on white background"
         }
         val prompt = "$style, $subject"
-        val generationId = leonardoClient.createGeneration(prompt)
+
+        var generationId: String?
+        try {
+            generationId = leonardoClient.createGeneration(prompt)
+        } catch (e: WebClientResponseException) {
+            val errorBody = e.responseBodyAsString
+            logger.error("Background removal failed. statusCode=${e.statusCode}, responseBody=$errorBody")
+            throw e
+        }
+
         val imageUrl = leonardoClient.waitForGeneration(generationId)
         val rawBytes = leonardoClient.downloadImage(imageUrl)
-
-
 
         val processedBytes = processImage(rawBytes)
 
