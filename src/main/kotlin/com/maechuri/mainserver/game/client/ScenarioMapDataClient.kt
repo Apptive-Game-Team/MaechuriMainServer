@@ -13,6 +13,9 @@ private const val MAP_HEIGHT = 50
 private const val TILE_EMPTY = 0
 private const val TILE_WALL = 1
 private const val TILE_FLOOR = 2
+private const val TILE_UPPER_WALL = 3
+private const val TILE_LEFT_WALL = 4
+private const val TILE_RIGHT_WALL = 5
 
 private const val OBJECT_ORDER = 3
 
@@ -27,8 +30,11 @@ class ScenarioMapDataClient(
         val scenario = scenarioProvider.findScenario(scenarioId)
 
         val assets = mutableListOf(
-            AssetInfo(id = "1", imageUrl = "https://s3.yunseong.dev/maechuri/objects/wood_floor.json"),
-            AssetInfo(id = "2", imageUrl = "https://s3.yunseong.dev/maechuri/objects/tile_floor.json")
+            AssetInfo(id = "1", imageUrl = "https://s3.yunseong.dev/maechuri/objects/ceil.json"),
+            AssetInfo(id = "2", imageUrl = "https://s3.yunseong.dev/maechuri/objects/floor.json"),
+            AssetInfo(id = "3", imageUrl = "https://s3.yunseong.dev/maechuri/objects/upper_wall.json"),
+            AssetInfo(id = "4", imageUrl = "https://s3.yunseong.dev/maechuri/objects/left_wall.json"),
+            AssetInfo(id = "5", imageUrl = "https://s3.yunseong.dev/maechuri/objects/right_wall.json")
         )
 
         val floorTiles = Array(MAP_HEIGHT) { IntArray(MAP_WIDTH) { TILE_EMPTY } }
@@ -42,6 +48,22 @@ class ScenarioMapDataClient(
                         floorTiles[y][x] = TILE_FLOOR
                         wallTiles[y][x] = TILE_EMPTY
                     }
+                }
+            }
+        }
+
+        for (y in 0 until MAP_HEIGHT) {
+            for (x in 0 until MAP_WIDTH) {
+
+                if (wallTiles[y][x] == TILE_WALL && y + 1 < MAP_HEIGHT && floorTiles[y + 1][x] == TILE_FLOOR) {
+                    wallTiles[y][x] = TILE_UPPER_WALL
+                }
+
+                if (wallTiles[y][x] == TILE_WALL && x + 1 < MAP_WIDTH && floorTiles[y][x + 1] == TILE_FLOOR) {
+                    wallTiles[y][x] = TILE_RIGHT_WALL
+                }
+                if (wallTiles[y][x] == TILE_WALL && x - 1 >= 0 && floorTiles[y][x - 1] == TILE_FLOOR) {
+                    wallTiles[y][x] = TILE_LEFT_WALL
                 }
             }
         }
