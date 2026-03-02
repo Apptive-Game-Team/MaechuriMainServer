@@ -11,4 +11,6 @@ data class Clue(
     val relatedSuspectIds: List<Long>?,
     val x: Short?,
     val y: Short?,
+    val visualDescription: String? = null,
+    val assetsUrl: String? = null,
 )

@@ -15,4 +15,6 @@ data class Clue(
     val relatedSuspectIds: String?, // jsonb
     val x: Short?,
     val y: Short?,
+    val visualDescription: String? = null,
+    val assetsUrl: String? = null,
 )
