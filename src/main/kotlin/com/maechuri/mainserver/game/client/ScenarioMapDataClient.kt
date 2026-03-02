@@ -7,8 +7,6 @@ import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
 import java.time.format.DateTimeFormatter
 
-private const val MAP_WIDTH = 50
-private const val MAP_HEIGHT = 50
 
 private const val TILE_EMPTY = 0
 private const val TILE_WALL = 1
@@ -29,6 +27,9 @@ class ScenarioMapDataClient(
     override suspend fun getMapData(scenarioId: Long): MapDataResponse {
         val scenario = scenarioProvider.findScenario(scenarioId)
 
+        val mapWidth = (scenario.locations.maxOfOrNull { it.x + it.width } ?: 49) + 1
+        val mapHeight = (scenario.locations.maxOfOrNull { it.y + it.height } ?: 49) + 1
+
         val assets = mutableListOf(
             AssetInfo(id = "1", imageUrl = "https://s3.yunseong.dev/maechuri/objects/ceil.json"),
             AssetInfo(id = "2", imageUrl = "https://s3.yunseong.dev/maechuri/objects/floor.json"),
@@ -37,14 +38,14 @@ class ScenarioMapDataClient(
             AssetInfo(id = "5", imageUrl = "https://s3.yunseong.dev/maechuri/objects/right_wall.json")
         )
 
-        val floorTiles = Array(MAP_HEIGHT) { IntArray(MAP_WIDTH) { TILE_EMPTY } }
-        val wallTiles = Array(MAP_HEIGHT) { IntArray(MAP_WIDTH) { TILE_WALL } }
+        val floorTiles = Array(mapHeight) { IntArray(mapWidth) { TILE_EMPTY } }
+        val wallTiles = Array(mapHeight) { IntArray(mapWidth) { TILE_WALL } }
 
         // Populate layers based on Location entities
         scenario.locations.forEach { loc ->
             for (y in loc.y.toInt() until (loc.y + loc.height)) {
                 for (x in loc.x.toInt() until (loc.x + loc.width)) {
-                    if (y in 0 until MAP_HEIGHT && x in 0 until MAP_WIDTH) {
+                    if (y in 0 until mapHeight && x in 0 until mapWidth) {
                         floorTiles[y][x] = TILE_FLOOR
                         wallTiles[y][x] = TILE_EMPTY
                     }
@@ -52,14 +53,14 @@ class ScenarioMapDataClient(
             }
         }
 
-        for (y in 0 until MAP_HEIGHT) {
-            for (x in 0 until MAP_WIDTH) {
+        for (y in 0 until mapHeight) {
+            for (x in 0 until mapWidth) {
 
-                if (wallTiles[y][x] == TILE_WALL && y + 1 < MAP_HEIGHT && floorTiles[y + 1][x] == TILE_FLOOR) {
+                if (wallTiles[y][x] == TILE_WALL && y + 1 < mapHeight && floorTiles[y + 1][x] == TILE_FLOOR) {
                     wallTiles[y][x] = TILE_UPPER_WALL
                 }
 
-                if (wallTiles[y][x] == TILE_WALL && x + 1 < MAP_WIDTH && floorTiles[y][x + 1] == TILE_FLOOR) {
+                if (wallTiles[y][x] == TILE_WALL && x + 1 < mapWidth && floorTiles[y][x + 1] == TILE_FLOOR) {
                     wallTiles[y][x] = TILE_RIGHT_WALL
                 }
                 if (wallTiles[y][x] == TILE_WALL && x - 1 >= 0 && floorTiles[y][x - 1] == TILE_FLOOR) {
