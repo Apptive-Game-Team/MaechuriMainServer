@@ -212,7 +212,7 @@ class AdminController(
         @PathVariable suspectId: Long,
         @RequestBody body: PositionRequest
     ): ResponseEntity<Void> {
-        adminService.updateSuspectPosition(scenarioId, suspectId, body.x, body.y)
+        adminService.updateSuspectPosition(scenarioId, suspectId, body.locationId, body.x, body.y)
         return ResponseEntity.ok().build()
     }
 
@@ -235,4 +235,4 @@ class AdminController(
     }
 }
 
-data class PositionRequest(val x: Short, val y: Short)
+data class PositionRequest(val locationId: Long = 0, val x: Short, val y: Short)

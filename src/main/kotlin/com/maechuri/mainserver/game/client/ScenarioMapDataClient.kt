@@ -92,13 +92,18 @@ class ScenarioMapDataClient(
             occupiedCoordinates.add(pos)
         }
 
+        val locationMapById = scenario.locations.associateBy { it.locationId }
+
         scenario.suspects.forEach { suspect ->
             if (suspect.x != null && suspect.y != null) {
+                val loc = suspect.locationId?.let { locationMapById[it] }
+                val absX = if (loc != null) loc.x + suspect.x.toInt() else suspect.x.toInt()
+                val absY = if (loc != null) loc.y + suspect.y.toInt() else suspect.y.toInt()
                 placeObject(
                     id = "s:${suspect.suspectId}",
                     name = suspect.name,
                     type = listOf("Interactable", "Non-Passable"),
-                    pos = Position(x = suspect.x.toInt(), y = suspect.y.toInt()),
+                    pos = Position(x = absX, y = absY),
                     assetUrl = suspect.assetsUrl ?: "https://s3.yunseong.dev/maechuri/objects/suspect.json"
                 )
             }
