@@ -309,6 +309,10 @@
             <p><strong>Motive:</strong> <span th:text="${suspect.motive}"></span></p>
             <p><strong>Alibi:</strong> <span th:text="${suspect.alibiSummary}"></span></p>
             <p>
+                <strong>Location:</strong>
+                <span th:text="${suspect.locationId}" th:id="|suspect-loc-${suspect.suspectId}|"></span>
+            </p>
+            <p>
                 <strong>Position:</strong>
                 <span th:text="|(${suspect.x}, ${suspect.y})|" class="position-badge"
                       th:id="|suspect-pos-${suspect.suspectId}|"></span>
@@ -381,9 +385,24 @@
     const repositionCancel = document.getElementById('reposition-cancel');
     let repositionKey = null;
 
+    // Build lookup maps for detail display
+    const suspectMap = {};
+    SUSPECTS.forEach(s => { suspectMap[s.suspectId] = s; });
+    const clueMap = {};
+    CLUES.forEach(c => { clueMap[c.clueId] = c; });
+    const locationMap = {};
+    MAP_TILES.forEach(l => { locationMap[l.locationId] = l; });
+
     // Track current in-memory positions (absolute coordinates for rendering)
     const positions = {};
-    SUSPECTS.forEach(s => { positions['suspect-' + s.suspectId] = { x: s.x, y: s.y }; });
+    SUSPECTS.forEach(s => {
+        const loc = s.locationId != null ? locationMap[s.locationId] : null;
+        if (loc && s.x != null && s.y != null) {
+            positions['suspect-' + s.suspectId] = { x: loc.x + s.x, y: loc.y + s.y };
+        } else {
+            positions['suspect-' + s.suspectId] = { x: s.x, y: s.y };
+        }
+    });
     CLUES.forEach(c => {
         const loc = c.location || locationMap[c.locationId];
         if (loc && c.x != null && c.y != null) {
@@ -392,14 +411,6 @@
             positions['clue-' + c.clueId] = { x: c.x, y: c.y };
         }
     });
-
-    // Build lookup maps for detail display
-    const suspectMap = {};
-    SUSPECTS.forEach(s => { suspectMap[s.suspectId] = s; });
-    const clueMap = {};
-    CLUES.forEach(c => { clueMap[c.clueId] = c; });
-    const locationMap = {};
-    MAP_TILES.forEach(l => { locationMap[l.locationId] = l; });
 
     // ── Zoom System ──
     let currentZoom = 0; // 0 means 'Fit to Width' (100% of container)
@@ -542,6 +553,7 @@
 
     function openSuspectModal(s) {
         const pos = positions['suspect-' + s.suspectId];
+        const loc = s.locationId != null ? locationMap[s.locationId] : null;
         modalTitle.textContent = 'Suspect: ' + s.name;
         modalBody.innerHTML =
             detailRow('ID', s.suspectId) +
@@ -557,6 +569,7 @@
             detailRow('Speech Style', s.speechStyle) +
             detailRow('Emotional Tendency', s.emotionalTendency) +
             detailRow('Lying Pattern', s.lyingPattern) +
+            detailRow('Location', loc ? `${loc.name} (ID: ${s.locationId})` : (s.locationId != null ? s.locationId : 'unset')) +
             detailRow('Position', pos && pos.x != null ? `(${pos.x}, ${pos.y})` : 'unset');
         modalRepositionBtn.dataset.key = 'suspect-' + s.suspectId;
         modalRepositionBtn.dataset.name = s.name;
@@ -643,7 +656,16 @@
             const id = repositionKey.substring(dashIdx + 1);
             const url = `/admin/scenarios/${SCENARIO_ID}/${type}s/${id}/position`;
 
-            // For clues, store relative position (offset from location origin)
+            // Detect which location the click falls into
+            let clickedLocationId = 0;
+            for (const tile of MAP_TILES) {
+                if (gx >= tile.x && gx < tile.x + tile.width && gy >= tile.y && gy < tile.y + tile.height) {
+                    clickedLocationId = tile.locationId;
+                    break;
+                }
+            }
+
+            // Store relative position (offset from location origin) for both suspects and clues
             let postX = gx, postY = gy;
             if (type === 'clue') {
                 const clue = clueMap[id];
@@ -652,17 +674,36 @@
                     postX = gx - loc.x;
                     postY = gy - loc.y;
                 }
+            } else if (type === 'suspect' && clickedLocationId && locationMap[clickedLocationId]) {
+                const loc = locationMap[clickedLocationId];
+                postX = gx - loc.x;
+                postY = gy - loc.y;
             }
 
             try {
-                await axios.post(url, { x: postX, y: postY }, { headers: { 'Content-Type': 'application/json' } });
+                const payload = { x: postX, y: postY };
+                if (type === 'suspect') {
+                    payload.locationId = clickedLocationId;
+                }
+                await axios.post(url, payload, { headers: { 'Content-Type': 'application/json' } });
                 positions[repositionKey] = { x: gx, y: gy }; // absolute for rendering
 
                 const badgeId = `${type}-pos-${id}`;
                 const badge = document.getElementById(badgeId);
                 if (badge) badge.textContent = `(${postX}, ${postY})`; // relative for display
 
-                showMessage(`Position updated to (${postX}, ${postY})`);
+                // Update location badge for suspects
+                if (type === 'suspect') {
+                    const locBadge = document.getElementById(`suspect-loc-${id}`);
+                    if (locBadge) locBadge.textContent = clickedLocationId || '';
+                    suspectMap[id].locationId = clickedLocationId;
+                }
+
+                const locName = clickedLocationId && locationMap[clickedLocationId] ? locationMap[clickedLocationId].name : '';
+                const msg = type === 'suspect' && locName
+                    ? `Position updated to (${postX}, ${postY}) in ${locName}`
+                    : `Position updated to (${postX}, ${postY})`;
+                showMessage(msg);
                 exitRepositionMode();
             } catch (err) {
                 showMessage('Failed to update position: ' + (err.response?.data || err.message), true);

@@ -7,8 +7,9 @@ import org.springframework.stereotype.Service
 @Service
 class AdminService(private val databaseClient: DatabaseClient) {
 
-    suspend fun updateSuspectPosition(scenarioId: Long, suspectId: Long, x: Short, y: Short) {
-        val updated = databaseClient.sql("UPDATE suspect SET x = :x, y = :y WHERE scenario_id = :scenarioId AND suspect_id = :suspectId")
+    suspend fun updateSuspectPosition(scenarioId: Long, suspectId: Long, locationId: Long, x: Short, y: Short) {
+        val updated = databaseClient.sql("UPDATE suspect SET location_id = :locationId, x = :x, y = :y WHERE scenario_id = :scenarioId AND suspect_id = :suspectId")
+            .bind("locationId", locationId)
             .bind("x", x)
             .bind("y", y)
             .bind("scenarioId", scenarioId)
