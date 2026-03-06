@@ -8,6 +8,7 @@ import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.awaitBodyOrNull
+import kotlin.lazy
 
 private val log = KotlinLogging.logger {}
 
@@ -31,7 +32,17 @@ class LeonardoClient(private val leonardoProperties: LeonardoProperties) {
             .build()
     }
 
-    private val downloadClient: WebClient = WebClient.builder().build()
+    private val downloadClient: WebClient by lazy {
+        WebClient.builder()
+            .exchangeStrategies(
+                ExchangeStrategies.builder()
+                    .codecs { config ->
+                        config.defaultCodecs().maxInMemorySize(10 * 1024 * 1024) // 10MB
+                    }
+                    .build()
+            )
+            .build()
+    }
 
     /**
      * Initiates an image generation job on Leonardo.ai.
