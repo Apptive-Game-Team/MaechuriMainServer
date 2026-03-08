@@ -16,6 +16,7 @@
                 <th>ID</th>
                 <th>Theme</th>
                 <th>Difficulty</th>
+                <th>Date</th>
                 <th>Actions</th>
             </tr>
             </thead>
@@ -25,6 +26,16 @@
                 <td th:text="${scenario.theme}"></td>
                 <td th:text="${scenario.difficulty}"></td>
                 <td>
+                    <form class="d-flex gap-2 align-items-center scenario-date-form"
+                          th:data-scenario-id="${scenario.scenarioId}">
+                        <input type="date" class="form-control form-control-sm scenario-date-input"
+                               style="width:160px"
+                               th:value="${scenario.date}"/>
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">Set</button>
+                        <button type="button" class="btn btn-outline-danger btn-sm scenario-date-clear">Clear</button>
+                    </form>
+                </td>
+                <td>
                     <a th:href="@{/admin/scenarios/{id}(id=${scenario.scenarioId})}" class="btn btn-primary btn-sm">View</a>
                 </td>
             </tr>
@@ -32,5 +43,38 @@
         </table>
     </div>
 </div>
+<script>
+    document.querySelectorAll('.scenario-date-form').forEach(form => {
+        const scenarioId = form.dataset.scenarioId;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const dateValue = form.querySelector('.scenario-date-input').value;
+            await setDate(scenarioId, dateValue || null, null);
+        });
+
+        form.querySelector('.scenario-date-clear').addEventListener('click', async () => {
+            await setDate(scenarioId, null, form.querySelector('.scenario-date-input'));
+        });
+    });
+
+    async function setDate(scenarioId, date, inputToClear) {
+        try {
+            const res = await fetch(`/admin/scenarios/${scenarioId}/date`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({date: date}),
+            });
+            if (res.ok) {
+                if (inputToClear) inputToClear.value = '';
+                alert('Date updated successfully.');
+            } else {
+                alert('Failed to update date.');
+            }
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+</script>
 </body>
 </html>

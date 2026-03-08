@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.sql.Time
 import java.sql.Timestamp
+import java.time.LocalDate
 
 @Table(name = "scenario")
 data class Scenario(
@@ -30,4 +31,6 @@ data class Scenario(
     val createdAt: Timestamp,
     val incidentLocationId: Long?,
     val crimeLocationId: Long?,
+
+    val date: LocalDate? = null,
 )
