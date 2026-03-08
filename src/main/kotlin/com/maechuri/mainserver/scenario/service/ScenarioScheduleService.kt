@@ -1,7 +1,9 @@
 package com.maechuri.mainserver.scenario.service
 
+import com.maechuri.mainserver.game.repository.GameSessionRepository
 import com.maechuri.mainserver.scenario.dto.ScenarioScheduleItemResponse
 import com.maechuri.mainserver.scenario.dto.ScenarioScheduleResponse
+import com.maechuri.mainserver.scenario.entity.Scenario
 import com.maechuri.mainserver.scenario.entity.ScenarioState
 import com.maechuri.mainserver.scenario.repository.ScenarioRepository
 import kotlinx.coroutines.reactor.awaitSingle
@@ -12,9 +14,10 @@ import java.time.YearMonth
 @Service
 class ScenarioScheduleService(
     private val scenarioRepository: ScenarioRepository,
+    private val gameSessionRepository: GameSessionRepository
 ) {
 
-    suspend fun getSchedule(year: Int, month: Int): ScenarioScheduleResponse {
+    suspend fun getSchedule(sessionId: String, year: Int, month: Int): ScenarioScheduleResponse {
         val yearMonth = YearMonth.of(year, month)
         val from = yearMonth.atDay(1)
         val to = yearMonth.atEndOfMonth()
@@ -23,18 +26,14 @@ class ScenarioScheduleService(
             .collectList()
             .awaitSingle()
 
-        val today = LocalDate.now()
-
         val items = scenarios
-            .filter { it.date != null }
+            .filter { it.date != null && it.scenarioId != null }
             .map { scenario ->
-                val state = when {
-                    scenario.date!! < today -> ScenarioState.Finished
-                    scenario.date > today -> ScenarioState.Inactive
-                    else -> ScenarioState.Active
-                }
+
+                val state = getState(sessionId, scenario)
+
                 ScenarioScheduleItemResponse(
-                    date = scenario.date,
+                    date = scenario.date!!,
                     scenarioId = scenario.scenarioId!!,
                     state = state,
                 )
@@ -42,5 +41,20 @@ class ScenarioScheduleService(
             .sortedBy { it.date }
 
         return ScenarioScheduleResponse(month = month, scenarios = items)
+    }
+
+    suspend fun getState(sessionId: String, scenario: Scenario): ScenarioState {
+        val today = LocalDate.now()
+
+        if (scenario.date!! > today) {
+            return ScenarioState.Inactive
+        }
+
+        val gameSession = gameSessionRepository.findBySessionIdAndScenarioId(sessionId, scenario.scenarioId!!)
+        return when {
+            gameSession == null -> ScenarioState.Ready
+            gameSession.completedAt != null -> ScenarioState.Finished
+            else -> ScenarioState.Visited
+        }
     }
 }

@@ -36,9 +36,13 @@ class ScenarioController(
     suspend fun getSchedule(
         @RequestParam(required = false) year: Int?,
         @RequestParam(required = false) month: Int?,
+        exchange: ServerWebExchange
     ): ScenarioScheduleResponse {
+        val gameSessionId = exchange.getAttribute<String>(GameSessionFilter.GAME_SESSION_ATTRIBUTE_NAME)
+            ?: throw IllegalStateException("Game session ID not found in exchange attributes. Ensure GameSessionFilter is properly configured.")
         val now = LocalDate.now()
         return scenarioScheduleService.getSchedule(
+            gameSessionId,
             year = year ?: now.year,
             month = month ?: now.monthValue,
         )
