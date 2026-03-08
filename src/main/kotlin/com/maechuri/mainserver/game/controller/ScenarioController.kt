@@ -11,21 +11,42 @@ import com.maechuri.mainserver.game.service.InteractionService
 import com.maechuri.mainserver.game.service.RecordService
 import com.maechuri.mainserver.game.service.ScenarioService
 import com.maechuri.mainserver.global.config.GameSessionFilter
+import com.maechuri.mainserver.scenario.dto.ScenarioScheduleResponse
+import com.maechuri.mainserver.scenario.service.ScenarioScheduleService
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ServerWebExchange
+import java.time.LocalDate
 
 @RestController
 @RequestMapping("/api/scenarios")
 class ScenarioController(
     private val scenarioService: ScenarioService,
     private val interactionService: InteractionService,
-    private val recordService: RecordService
+    private val recordService: RecordService,
+    private val scenarioScheduleService: ScenarioScheduleService,
 ) {
+
+    @GetMapping("")
+    suspend fun getSchedule(
+        @RequestParam(required = false) year: Int?,
+        @RequestParam(required = false) month: Int?,
+        exchange: ServerWebExchange
+    ): ScenarioScheduleResponse {
+        val gameSessionId = exchange.getAttribute<String>(GameSessionFilter.GAME_SESSION_ATTRIBUTE_NAME)
+            ?: throw IllegalStateException("Game session ID not found in exchange attributes. Ensure GameSessionFilter is properly configured.")
+        val now = LocalDate.now()
+        return scenarioScheduleService.getSchedule(
+            gameSessionId,
+            year = year ?: now.year,
+            month = month ?: now.monthValue,
+        )
+    }
 
     @PostMapping("/{scenarioId}/solve")
     suspend fun solve(
