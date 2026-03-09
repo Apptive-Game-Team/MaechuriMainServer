@@ -6,6 +6,10 @@ import com.maechuri.mainserver.scenario.dto.ScenarioScheduleResponse
 import com.maechuri.mainserver.scenario.entity.Scenario
 import com.maechuri.mainserver.scenario.entity.ScenarioState
 import com.maechuri.mainserver.scenario.repository.ScenarioRepository
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -27,6 +31,7 @@ class ScenarioScheduleService(
             .awaitSingle()
 
         val items = scenarios
+            .asFlow()
             .filter { it.date != null && it.scenarioId != null }
             .map { scenario ->
 
@@ -38,6 +43,7 @@ class ScenarioScheduleService(
                     state = state,
                 )
             }
+            .toList()
             .sortedBy { it.date }
 
         return ScenarioScheduleResponse(month = month, scenarios = items)
