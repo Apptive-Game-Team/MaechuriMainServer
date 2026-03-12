@@ -3,6 +3,7 @@ package com.maechuri.mainserver.scenario.provider
 import com.maechuri.mainserver.scenario.repository.ScenarioRepository
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.stereotype.Component
+import java.time.LocalDate
 
 @Component
 class LatestScenarioIdProvider(
@@ -10,9 +11,10 @@ class LatestScenarioIdProvider(
 ) : TodayScenarioIdProvider {
 
     override suspend fun getTodayScenarioId(): Long {
-        val scenario = scenarioRepository.findTopByOrderByCreatedAtDesc().awaitSingleOrNull()
-            ?: throw IllegalStateException("No scenarios found in the database")
+        val today = LocalDate.now()
+        val scenario = scenarioRepository.findByDate(today).awaitSingleOrNull()
+            ?: throw IllegalStateException("No scenario found for today ($today)")
         return scenario.scenarioId
-            ?: throw IllegalStateException("Latest scenario has no ID")
+            ?: throw IllegalStateException("Today's scenario has no ID")
     }
 }
