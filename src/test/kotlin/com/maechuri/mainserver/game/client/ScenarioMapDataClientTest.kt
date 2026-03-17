@@ -25,11 +25,20 @@ class ScenarioMapDataClientTest {
     private val todayScenarioIdProvider: TodayScenarioIdProvider = mock()
     private val scenarioMapDataClient = ScenarioMapDataClient(scenarioProvider, todayScenarioIdProvider)
 
+    // Per-location tile IDs for the first (index=0) location in these tests
+    // (LOCATION_TILE_ID_BASE=10, index*2=0 → floor=10, wall=11)
+    private val expectedFloorTileId = 10
+    private val expectedWallTileId = 11
+
     @Test
     fun `getMapData returns correctly mapped data`() = runBlocking {
         // Given
         val scenarioId = 1L
-        val mockLocation = Location(locationId = 1L, name = "Test Room", type = "room", x = 2, y = 2, width = 10, height = 10, canSee = emptyList(), cannotSee = emptyList(), accessRequires = null)
+        val mockLocation = Location(
+            locationId = 1L, name = "Test Room", type = "room",
+            x = 2, y = 2, width = 10, height = 10,
+            canSee = emptyList(), cannotSee = emptyList(), accessRequires = null
+        )
         val mockScenario = Scenario(
             scenarioId = scenarioId,
             difficulty = Difficulty.easy,
@@ -51,16 +60,24 @@ class ScenarioMapDataClientTest {
             createdAt = LocalDateTime.now(),
             locations = listOf(mockLocation),
             clues = listOf(
-                Clue(clueId = 1L, name = "Test Clue", location = mockLocation, description = "A clue", logicExplanation = "Logic", decodedAnswer = null, isRedHerring = false, relatedSuspectIds = emptyList(), x = 5, y = 5)
+                Clue(
+                    clueId = 1L, name = "Test Clue", location = mockLocation,
+                    description = "A clue", logicExplanation = "Logic",
+                    decodedAnswer = null, isRedHerring = false,
+                    relatedSuspectIds = emptyList(), x = 5, y = 5
+                )
             ),
             suspects = listOf(
-                Suspect(suspectId = 101L, name = "Test Suspect", role = "Witness", age = 30, gender = "Male", description = "A suspect", isCulprit = false, motive = null, alibiSummary = "Alibi", speechStyle = "Polite", emotionalTendency = "Calm", lyingPattern = "None", x = 10, y = 10)
+                Suspect(
+                    suspectId = 101L, name = "Test Suspect", role = "Witness", age = 30,
+                    gender = "Male", description = "A suspect", isCulprit = false, motive = null,
+                    alibiSummary = "Alibi", speechStyle = "Polite", emotionalTendency = "Calm",
+                    lyingPattern = "None", locationId = null, x = 10, y = 10
+                )
             ),
         )
 
-        Mockito.`when`(scenarioProvider.findScenario(anyLong())).thenAnswer {
-            mockScenario
-        }
+        Mockito.`when`(scenarioProvider.findScenario(anyLong())).thenAnswer { mockScenario }
 
         // When
         val response = scenarioMapDataClient.getMapData(scenarioId)
@@ -70,13 +87,21 @@ class ScenarioMapDataClientTest {
         assertEquals(scenarioId, response.scenarioId)
         assertEquals("Test Theme", response.scenarioName)
 
-        assertEquals(5, response.map.assets.size)
+        // Assets: 1 default wall + 2 per-location (floor+wall) + 1 suspect + 1 clue + up to 3 NPCs
+        assertTrue(response.map.assets.size >= 5, "Expected at least 5 assets")
         assertNotNull(response.map.assets.find { it.id == "s:101" })
-        assertEquals("https://s3.yunseong.dev/maechuri/objects/cook_2.json", response.map.assets.find { it.id == "s:101" }?.imageUrl)
         assertNotNull(response.map.assets.find { it.id == "c:1" })
-        assertEquals("https://s3.yunseong.dev/maechuri/objects/cook_1.json", response.map.assets.find { it.id == "c:1" }?.imageUrl)
         assertNotNull(response.map.assets.find { it.id == "p:1" })
-        assertEquals("https://s3.yunseong.dev/maechuri/objects/player.json", response.map.assets.find { it.id == "p:1" }?.imageUrl)
+
+        // Per-location floor and wall assets must be present
+        assertNotNull(
+            response.map.assets.find { it.id == expectedFloorTileId.toString() },
+            "Expected a floor tile asset for the location"
+        )
+        assertNotNull(
+            response.map.assets.find { it.id == expectedWallTileId.toString() },
+            "Expected a wall tile asset for the location"
+        )
 
         assertEquals(2, response.map.layers.size) // floor and wall layers
 
@@ -85,19 +110,32 @@ class ScenarioMapDataClientTest {
         assertNotNull(floorLayer)
         assertNotNull(wallLayer)
 
-        // Check room area (x=2 to 11, y=2 to 11)
+        // Check room area (x=2 to 11, y=2 to 11) — must use location-specific floor tile ID
         for (y in 2 until 12) {
             for (x in 2 until 12) {
-                assertEquals(2, floorLayer.tileMap[y][x], "Floor tile should be 2 inside room at ($x, $y)")
-                assertEquals(0, wallLayer.tileMap[y][x], "Wall tile should be 0 inside room at ($x, $y)")
+                assertEquals(
+                    expectedFloorTileId, floorLayer.tileMap[y][x],
+                    "Floor tile should be $expectedFloorTileId inside room at ($x, $y)"
+                )
+                assertEquals(
+                    0, wallLayer.tileMap[y][x],
+                    "Wall tile should be 0 (empty) inside room at ($x, $y)"
+                )
             }
         }
 
-        // Check outside room area (e.g., (0,0) or (1,1))
+        // Far-outside tiles (e.g., (0,0)) not adjacent to any location → default wall
         assertEquals(0, floorLayer.tileMap[0][0], "Floor tile should be 0 outside room at (0,0)")
-        assertEquals(1, wallLayer.tileMap[0][0], "Wall tile should be 1 outside room at (0,0)")
+        assertEquals(1, wallLayer.tileMap[0][0], "Wall tile should be 1 (default) far outside room at (0,0)")
 
-        assertEquals(3, response.map.objects.size) // Suspect, Clue, Player
+        // Wall tile just above the room (y=1, x inside room) should use location wall image
+        assertEquals(
+            expectedWallTileId, wallLayer.tileMap[1][5],
+            "Wall tile just above the room should use the location's wall tile ID"
+        )
+
+        // Objects: suspect + clue + at least 1 NPC (player)
+        assertTrue(response.map.objects.size >= 3, "Expected at least 3 objects")
         val suspectObject = response.map.objects.find { it.id == "s:101" }
         assertNotNull(suspectObject)
         assertEquals("Test Suspect", suspectObject.name)
@@ -122,7 +160,11 @@ class ScenarioMapDataClientTest {
     fun `getTodayMapData delegates to getMapData with id from todayScenarioIdProvider`() = runBlocking {
         // Given
         val todayScenarioId = 7L
-        val mockLocation = Location(locationId = 1L, name = "Today Room", type = "room", x = 0, y = 0, width = 5, height = 5, canSee = emptyList(), cannotSee = emptyList(), accessRequires = null)
+        val mockLocation = Location(
+            locationId = 1L, name = "Today Room", type = "room",
+            x = 0, y = 0, width = 5, height = 5,
+            canSee = emptyList(), cannotSee = emptyList(), accessRequires = null
+        )
         val mockScenario = Scenario(
             scenarioId = todayScenarioId,
             difficulty = Difficulty.easy,

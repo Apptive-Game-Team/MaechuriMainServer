@@ -26,11 +26,13 @@ class ImageGenerationService(
     private val databaseClient: DatabaseClient,
     private val backgroundRemovalService: BackgroundRemovalService,
     private val webClient: WebClient,
+    private val backgroundImageService: BackgroundImageService,
 ) {
 
     /**
      * Generates images for all suspects and clues in the given scenario that have a
-     * [visualDescription] but no [assetsUrl] yet.
+     * [visualDescription] but no [assetsUrl] yet, and generates background floor/wall
+     * tile images for all locations.
      */
     suspend fun generateImagesForScenario(scenarioId: Long) {
         val suspects = suspectRepository.findAllByScenarioId(scenarioId).collectList().awaitSingle()
@@ -64,6 +66,8 @@ class ImageGenerationService(
                 log.error(e) { "Failed to generate image for clue ${clue.clueId} in scenario $scenarioId" }
             }
         }
+
+        backgroundImageService.generateBackgroundImagesForScenario(scenarioId)
     }
 
     /**
