@@ -3,6 +3,7 @@ package com.maechuri.mainserver.scenario.scheduler
 import com.maechuri.mainserver.admin.AdminService
 import com.maechuri.mainserver.scenario.client.AiClient
 import com.maechuri.mainserver.scenario.dto.ScenarioCreateStatus
+import com.maechuri.mainserver.scenario.repository.ScenarioRepository
 import com.maechuri.mainserver.scenario.service.ScenarioGenerationService
 import com.maechuri.mainserver.storage.service.ImageGenerationService
 import kotlinx.coroutines.CoroutineScope
@@ -10,8 +11,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -24,6 +28,7 @@ class ScenarioDailyScheduler(
     @Qualifier("scenario_ai_client") private val aiClient: AiClient,
     private val imageGenerationService: ImageGenerationService,
     private val adminService: AdminService,
+    private val scenarioRepository: ScenarioRepository,
 ) {
 
     companion object {
@@ -34,6 +39,13 @@ class ScenarioDailyScheduler(
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    @EventListener(ApplicationReadyEvent::class)
+    fun onApplicationReady() {
+        scope.launch {
+            generateScenarioWithRetry()
+        }
+    }
+
     @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
     fun scheduleScenarioGeneration() {
         scope.launch {
@@ -43,6 +55,11 @@ class ScenarioDailyScheduler(
 
     internal suspend fun generateScenarioWithRetry() {
         val targetDate = LocalDate.now().plusDays(1)
+        val existing = scenarioRepository.findByDate(targetDate).awaitSingleOrNull()
+        if (existing != null) {
+            log.info { "Scenario for $targetDate already exists (id=${existing.scenarioId}), skipping generation" }
+            return
+        }
         for (attempt in 1..MAX_ATTEMPTS) {
             log.info { "Scenario generation attempt $attempt/$MAX_ATTEMPTS (target date: $targetDate)" }
             val success = tryGenerateScenario(targetDate)
