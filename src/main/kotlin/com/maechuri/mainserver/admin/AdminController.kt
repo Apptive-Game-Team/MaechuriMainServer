@@ -233,6 +233,17 @@ class AdminController(
         imageGenerationService.generateImagesForScenario(scenarioId)
         return ResponseEntity.ok().body(mapOf("message" to "Image generation completed for scenario $scenarioId"))
     }
+
+    @PostMapping("/scenarios/{scenarioId}/date")
+    @ResponseBody
+    suspend fun updateScenarioDate(
+        @PathVariable scenarioId: Long,
+        @RequestBody body: ScenarioDateRequest
+    ): ResponseEntity<Void> {
+        adminService.updateScenarioDate(scenarioId, body.date)
+        return ResponseEntity.ok().build()
+    }
 }
 
 data class PositionRequest(val locationId: Long = 0, val x: Short, val y: Short)
+data class ScenarioDateRequest(val date: java.time.LocalDate?)

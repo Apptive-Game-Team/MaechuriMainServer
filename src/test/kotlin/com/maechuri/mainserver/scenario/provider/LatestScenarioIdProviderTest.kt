@@ -5,11 +5,13 @@ import com.maechuri.mainserver.scenario.entity.Scenario
 import com.maechuri.mainserver.scenario.repository.ScenarioRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import reactor.core.publisher.Mono
 import java.sql.Time
 import java.sql.Timestamp
+import java.time.LocalDate
 import java.time.LocalTime
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -20,11 +22,11 @@ class LatestScenarioIdProviderTest {
     private val provider = LatestScenarioIdProvider(scenarioRepository)
 
     @Test
-    fun `getTodayScenarioId returns the id of the most recently created scenario`() = runBlocking {
-        val latestScenario = Scenario(
+    fun `getTodayScenarioId returns the id of the scenario whose date is today`() = runBlocking {
+        val todayScenario = Scenario(
             scenarioId = 42L,
             difficulty = Difficulty.easy,
-            theme = "Latest Theme",
+            theme = "Today Theme",
             tone = "Tone",
             language = "ko",
             incidentType = "Type",
@@ -39,10 +41,11 @@ class LatestScenarioIdProviderTest {
             noTimeTravel = true,
             createdAt = Timestamp(System.currentTimeMillis()),
             incidentLocationId = null,
-            crimeLocationId = null
+            crimeLocationId = null,
+            date = LocalDate.now()
         )
 
-        whenever(scenarioRepository.findTopByOrderByCreatedAtDesc()).thenReturn(Mono.just(latestScenario))
+        whenever(scenarioRepository.findByDate(any())).thenReturn(Mono.just(todayScenario))
 
         val result = provider.getTodayScenarioId()
 
@@ -50,8 +53,8 @@ class LatestScenarioIdProviderTest {
     }
 
     @Test
-    fun `getTodayScenarioId throws when no scenarios exist`() = runBlocking {
-        whenever(scenarioRepository.findTopByOrderByCreatedAtDesc()).thenReturn(Mono.empty())
+    fun `getTodayScenarioId throws when no scenario exists for today`() = runBlocking {
+        whenever(scenarioRepository.findByDate(any())).thenReturn(Mono.empty())
 
         assertFailsWith<IllegalStateException> {
             provider.getTodayScenarioId()
