@@ -10,12 +10,14 @@ import java.time.format.DateTimeFormatter
 
 private const val TILE_EMPTY = 0
 private const val TILE_WALL = 1
-private const val TILE_FLOOR = 2
-private const val TILE_UPPER_WALL = 3
-private const val TILE_LEFT_WALL = 4
-private const val TILE_RIGHT_WALL = 5
 
 private const val OBJECT_ORDER = 3
+
+/** Starting tile ID for per-location floor/wall assets (avoids collision with TILE_EMPTY and TILE_WALL). */
+private const val LOCATION_TILE_ID_BASE = 10
+
+private const val DEFAULT_FLOOR_URL = "https://s3.yunseong.dev/maechuri/objects/floor.json"
+private const val DEFAULT_WALL_URL = "https://s3.yunseong.dev/maechuri/objects/ceil.json"
 
 @Primary
 @Component
@@ -30,42 +32,60 @@ class ScenarioMapDataClient(
         val mapWidth = (scenario.locations.maxOfOrNull { it.x + it.width } ?: 49) + 1
         val mapHeight = (scenario.locations.maxOfOrNull { it.y + it.height } ?: 49) + 1
 
-        val assets = mutableListOf(
-            AssetInfo(id = "1", imageUrl = "https://s3.yunseong.dev/maechuri/objects/ceil.json"),
-            AssetInfo(id = "2", imageUrl = "https://s3.yunseong.dev/maechuri/objects/floor.json"),
-            AssetInfo(id = "3", imageUrl = "https://s3.yunseong.dev/maechuri/objects/upper_wall.json"),
-            AssetInfo(id = "4", imageUrl = "https://s3.yunseong.dev/maechuri/objects/left_wall.json"),
-            AssetInfo(id = "5", imageUrl = "https://s3.yunseong.dev/maechuri/objects/right_wall.json")
-        )
+        val assets = mutableListOf<AssetInfo>()
+
+        // Default wall asset (for wall tiles not adjacent to any location)
+        assets.add(AssetInfo(id = TILE_WALL.toString(), imageUrl = DEFAULT_WALL_URL))
+
+        // Assign unique tile IDs per location and register their floor/wall assets
+        val locationFloorTileId = mutableMapOf<Long, Int>()
+        val locationWallTileId = mutableMapOf<Long, Int>()
+
+        scenario.locations.forEachIndexed { index, loc ->
+            val floorTileId = LOCATION_TILE_ID_BASE + index * 2
+            val wallTileId = LOCATION_TILE_ID_BASE + index * 2 + 1
+            locationFloorTileId[loc.locationId] = floorTileId
+            locationWallTileId[loc.locationId] = wallTileId
+
+            assets.add(AssetInfo(id = floorTileId.toString(), imageUrl = loc.floorUrl ?: DEFAULT_FLOOR_URL))
+            assets.add(AssetInfo(id = wallTileId.toString(), imageUrl = loc.wallUrl ?: DEFAULT_WALL_URL))
+        }
 
         val floorTiles = Array(mapHeight) { IntArray(mapWidth) { TILE_EMPTY } }
         val wallTiles = Array(mapHeight) { IntArray(mapWidth) { TILE_WALL } }
+        // Tracks which location owns each floor tile position (–1 = no location)
+        val floorLocationId = Array(mapHeight) { LongArray(mapWidth) { -1L } }
 
-        // Populate layers based on Location entities
+        // Populate floor tiles per location
         scenario.locations.forEach { loc ->
+            val floorTileId = locationFloorTileId[loc.locationId]!!
             for (y in loc.y.toInt() until (loc.y + loc.height)) {
                 for (x in loc.x.toInt() until (loc.x + loc.width)) {
                     if (y in 0 until mapHeight && x in 0 until mapWidth) {
-                        floorTiles[y][x] = TILE_FLOOR
+                        floorTiles[y][x] = floorTileId
+                        floorLocationId[y][x] = loc.locationId
                         wallTiles[y][x] = TILE_EMPTY
                     }
                 }
             }
         }
 
+        // Assign per-location wall tile IDs to wall tiles adjacent to a location's floor
         for (y in 0 until mapHeight) {
             for (x in 0 until mapWidth) {
+                if (wallTiles[y][x] != TILE_WALL) continue
 
-                if (wallTiles[y][x] == TILE_WALL && y + 1 < mapHeight && floorTiles[y + 1][x] == TILE_FLOOR) {
-                    wallTiles[y][x] = TILE_UPPER_WALL
+                val adjacentLocId: Long? = when {
+                    y + 1 < mapHeight && floorLocationId[y + 1][x] >= 0L -> floorLocationId[y + 1][x]
+                    x + 1 < mapWidth && floorLocationId[y][x + 1] >= 0L -> floorLocationId[y][x + 1]
+                    x - 1 >= 0 && floorLocationId[y][x - 1] >= 0L -> floorLocationId[y][x - 1]
+                    else -> null
                 }
 
-                if (wallTiles[y][x] == TILE_WALL && x + 1 < mapWidth && floorTiles[y][x + 1] == TILE_FLOOR) {
-                    wallTiles[y][x] = TILE_RIGHT_WALL
+                if (adjacentLocId != null) {
+                    wallTiles[y][x] = locationWallTileId[adjacentLocId]!!
                 }
-                if (wallTiles[y][x] == TILE_WALL && x - 1 >= 0 && floorTiles[y][x - 1] == TILE_FLOOR) {
-                    wallTiles[y][x] = TILE_LEFT_WALL
-                }
+                // else: keep TILE_WALL = 1 (default wall asset)
             }
         }
 
@@ -121,11 +141,11 @@ class ScenarioMapDataClient(
             }
         }
 
-        // Find available floor spots for the player
+        // Find available floor spots for the player (tile IDs >= LOCATION_TILE_ID_BASE are floor tiles)
         val availableSpots = mutableListOf<Position>()
         floorTiles.forEachIndexed { y, row ->
             row.forEachIndexed { x, tileId ->
-                if (tileId == TILE_FLOOR) {
+                if (tileId >= LOCATION_TILE_ID_BASE) {
                     val pos = Position(x, y)
                     if (pos !in occupiedCoordinates) {
                         availableSpots.add(pos)

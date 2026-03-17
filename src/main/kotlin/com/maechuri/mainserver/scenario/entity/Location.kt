@@ -15,4 +15,6 @@ data class Location(
     val canSee: String, // jsonb
     val cannotSee: String, // jsonb
     val accessRequires: String?,
+    val floorUrl: String? = null,
+    val wallUrl: String? = null,
 )

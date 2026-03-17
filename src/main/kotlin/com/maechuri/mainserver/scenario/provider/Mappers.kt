@@ -56,7 +56,9 @@ fun Location.toDomain(): DomainLocation {
         height = this.height,
         canSee = canSeeList,
         cannotSee = cannotSeeList,
-        accessRequires = this.accessRequires
+        accessRequires = this.accessRequires,
+        floorUrl = this.floorUrl,
+        wallUrl = this.wallUrl,
     )
 }
 
@@ -150,7 +152,9 @@ fun DomainLocation.toEntity(scenarioId: Long): Location {
         height = this.height,
         canSee = objectMapper.writeValueAsString(this.canSee),
         cannotSee = objectMapper.writeValueAsString(this.cannotSee),
-        accessRequires = this.accessRequires
+        accessRequires = this.accessRequires,
+        floorUrl = this.floorUrl,
+        wallUrl = this.wallUrl,
     )
 }
 
