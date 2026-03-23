@@ -6,5 +6,5 @@ data class InteractResponse(
     val name: String? = null,
     val pressure: Int? = null,
     val pressureDelta: Int? = null,
-    val revealedFactIds: List<Long>? = null
+    val revealedRecordIds: List<String>? = null
 )

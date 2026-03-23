@@ -70,7 +70,12 @@ class InteractionService(
 
     private suspend fun handleSuspectInteraction(scenarioId: Long, suspectId: Long, request: InteractRequest, gameSessionId: String): InteractResponse {
 
+        val revealedRecordIds = mutableListOf<String>()
+        if (request.message == null) {
+            revealedRecordIds.add("s:$suspectId")
+        }
         val userMessage = request.message ?: "안녕하세요"
+
 
         val responseMessage = aiClient.generateSuspectResponse(
             SuspectChatRequest(
@@ -89,12 +94,16 @@ class InteractionService(
             saveRecord(gameSessionId, scenarioId, "f", factId)
         }
 
+        revealedRecordIds.addAll(
+            responseMessage.revealed_fact_ids?.map { id -> "f:$id" }?.toList() ?: emptyList()
+        )
+
         return InteractResponse(
             type = "two-way",
             message = responseMessage.answer,
             pressure = responseMessage.pressure,
             pressureDelta = responseMessage.pressure_delta,
-            revealedFactIds = responseMessage.revealed_fact_ids
+            revealedRecordIds = revealedRecordIds
         )
     }
 
@@ -109,6 +118,7 @@ class InteractionService(
             type = "simple",
             message = clue.description,
             name = clue.name,
+            revealedRecordIds = listOf("c:$objectId"),
         )
     }
 
