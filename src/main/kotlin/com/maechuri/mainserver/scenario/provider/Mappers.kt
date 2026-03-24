@@ -2,11 +2,13 @@ package com.maechuri.mainserver.scenario.provider
 
 import com.maechuri.mainserver.scenario.domain.Clue as DomainClue
 import com.maechuri.mainserver.scenario.domain.Fact as DomainFact
+import com.maechuri.mainserver.scenario.domain.Furniture as DomainFurniture
 import com.maechuri.mainserver.scenario.domain.Location as DomainLocation
 import com.maechuri.mainserver.scenario.domain.Scenario as DomainScenario
 import com.maechuri.mainserver.scenario.domain.Suspect as DomainSuspect
 import com.maechuri.mainserver.scenario.entity.Clue
 import com.maechuri.mainserver.scenario.entity.Fact
+import com.maechuri.mainserver.scenario.entity.Furniture
 import com.maechuri.mainserver.scenario.entity.Location
 import com.maechuri.mainserver.scenario.entity.Scenario
 import com.maechuri.mainserver.scenario.entity.Suspect
@@ -97,6 +99,20 @@ fun Suspect.toDomain(): DomainSuspect {
         x = this.x,
         y = this.y,
         visualDescription = this.visualDescription,
+        assetsUrl = this.assetsUrl,
+    )
+}
+
+fun Furniture.toDomain(): DomainFurniture {
+    return DomainFurniture(
+        id = this.id,
+        locationId = this.locationId,
+        name = this.name,
+        description = this.description,
+        originX = this.originX,
+        originY = this.originY,
+        width = this.width,
+        height = this.height,
         assetsUrl = this.assetsUrl,
     )
 }
