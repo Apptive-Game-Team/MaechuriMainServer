@@ -4,6 +4,8 @@ import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
 import com.maechuri.mainserver.storage.config.U2NetProperties
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import java.awt.RenderingHints
@@ -65,7 +67,9 @@ class U2NetBackgroundRemovalService(
                 "Ensure the model file exists or update the u2net.model-path configuration property."
             )
 
-        val original = ImageIO.read(ByteArrayInputStream(imageBytes))
+        val original = withContext(Dispatchers.IO) {
+            ImageIO.read(ByteArrayInputStream(imageBytes))
+        }
             ?: error("Could not decode input image bytes")
 
         val origWidth  = original.width

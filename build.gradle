@@ -71,7 +71,7 @@ dependencies {
     implementation 'dev.yunseong:api-limit-webflux:0.0.1'
 
     // ONNX Runtime for local U2Net inference
-    implementation 'com.microsoft.onnxruntime:onnxruntime:1.20.1'
+    implementation 'com.microsoft.onnxruntime:onnxruntime:1.24.3'
 }
 
 kotlin {
