@@ -1,7 +1,7 @@
 package com.maechuri.mainserver.storage.service
 
 import com.maechuri.mainserver.game.entity.Asset
-import com.maechuri.mainserver.game.entity.AssetStatus
+import com.maechuri.mainserver.scenario.entity.AssetStatus
 import com.maechuri.mainserver.game.repository.AssetRepository
 import com.maechuri.mainserver.scenario.repository.ClueRepository
 import com.maechuri.mainserver.scenario.repository.SuspectRepository
@@ -9,8 +9,8 @@ import com.maechuri.mainserver.storage.client.LeonardoClient
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import mu.KotlinLogging
+import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
@@ -30,6 +30,7 @@ class ImageGenerationService(
     private val backgroundRemovalService: BackgroundRemovalService,
     private val backgroundImageService: BackgroundImageService,
     private val assetRepository: AssetRepository,
+    private val databaseClient: DatabaseClient,
 ) {
 
     /**
@@ -43,7 +44,11 @@ class ImageGenerationService(
             try {
                 val asset = getOrCreateAssetForSuspect(scenarioId, suspect.suspectId, suspect.visualDescription, suspect.assetId)
                 if (suspect.assetId == null) {
-                    suspectRepository.save(suspect.copy(assetId = asset.id)).awaitSingle()
+                    databaseClient.sql { "UPDATE suspect SET asset_id = :assetId WHERE scenario_id = :scenarioId AND suspect_id = :suspectId;" }
+                        .bind("scenarioId", scenarioId)
+                        .bind("assetId", asset.id!!)
+                        .bind("suspectId", suspect.suspectId)
+                        .fetch().rowsUpdated().awaitSingle()
                 }
                 
                 if (asset.status != AssetStatus.COMPLETED) {
@@ -61,7 +66,11 @@ class ImageGenerationService(
             try {
                 val asset = getOrCreateAssetForClue(scenarioId, clue.clueId, clue.visualDescription, clue.assetId)
                 if (clue.assetId == null) {
-                    clueRepository.save(clue.copy(assetId = asset.id)).awaitSingle()
+                    databaseClient.sql { "UPDATE clue SET asset_id = :assetId WHERE scenario_id = :scenarioId AND clue_id = :clueId;" }
+                        .bind("scenarioId", scenarioId)
+                        .bind("assetId", asset.id!!)
+                        .bind("clueId", clue.clueId)
+                        .fetch().rowsUpdated().awaitSingle()
                 }
 
                 if (asset.status != AssetStatus.COMPLETED) {
