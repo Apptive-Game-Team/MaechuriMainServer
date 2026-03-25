@@ -10,4 +10,5 @@ interface ScenarioRepository : R2dbcRepository<Scenario, Long> {
     fun findTopByOrderByCreatedAtDesc(): Mono<Scenario>
     fun findByDate(date: LocalDate): Mono<Scenario>
     fun findByDateBetween(from: LocalDate, to: LocalDate): Flux<Scenario>
+    fun findTopByDateLessThanEqualOrderByDateDesc(date: LocalDate): Mono<Scenario>
 }

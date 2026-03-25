@@ -12,9 +12,9 @@ class LatestScenarioIdProvider(
 
     override suspend fun getTodayScenarioId(): Long {
         val today = LocalDate.now()
-        val scenario = scenarioRepository.findByDate(today).awaitSingleOrNull()
-            ?: throw IllegalStateException("No scenario found for today ($today)")
+        val scenario = scenarioRepository.findTopByDateLessThanEqualOrderByDateDesc(today).awaitSingleOrNull()
+            ?: throw IllegalStateException("No scenario found for today or any previous date ($today)")
         return scenario.scenarioId
-            ?: throw IllegalStateException("Today's scenario has no ID")
+            ?: throw IllegalStateException("Scenario for date ${scenario.date} has no ID")
     }
 }
