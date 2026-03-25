@@ -2,6 +2,7 @@
 
 -- 1. Update the existing asset table
 ALTER TABLE asset RENAME COLUMN meta_file_url TO final_url;
+ALTER TABLE asset ALTER COLUMN final_url DROP NOT NULL; -- Allow NULL for async generation
 ALTER TABLE asset ADD COLUMN IF NOT EXISTS prompt TEXT;
 ALTER TABLE asset ADD COLUMN IF NOT EXISTS raw_url VARCHAR(512);
 ALTER TABLE asset ADD COLUMN IF NOT EXISTS resized_url VARCHAR(512);
