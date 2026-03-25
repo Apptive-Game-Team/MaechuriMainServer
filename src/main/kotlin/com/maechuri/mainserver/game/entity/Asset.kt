@@ -1,5 +1,6 @@
 package com.maechuri.mainserver.game.entity
 
+import com.maechuri.mainserver.scenario.entity.AssetStatus
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.relational.core.mapping.Table

@@ -8,6 +8,7 @@ import com.maechuri.mainserver.scenario.entity.Suspect
 import com.maechuri.mainserver.scenario.repository.ClueRepository
 import com.maechuri.mainserver.scenario.repository.FactRepository
 import com.maechuri.mainserver.scenario.repository.SuspectRepository
+import io.r2dbc.postgresql.codec.Json
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -78,7 +79,8 @@ class RecordServiceTest {
             emotionalTendency = "차분함",
             lyingPattern = "눈을 마주치지 못함",
             x = 5,
-            y = 15
+            y = 15,
+            locationId = 1
         )
 
         whenever(suspectRepository.findByScenarioIdAndSuspectId(scenarioId, suspectId))
@@ -103,7 +105,7 @@ class RecordServiceTest {
             logicExplanation = "범행에 사용된 흉기일 가능성이 높습니다.",
             decodedAnswer = null,
             isRedHerring = false,
-            relatedSuspectIds = "[]",
+            relatedSuspectIds = Json.of("[]"),
             x = 26,
             y = 6
         )
@@ -169,7 +171,7 @@ class RecordServiceTest {
             logicExplanation = "범행에 사용된 흉기일 가능성이 높습니다.",
             decodedAnswer = null,
             isRedHerring = false,
-            relatedSuspectIds = "[]",
+            relatedSuspectIds = Json.of("[]"),
             x = 26,
             y = 6
         )
@@ -189,7 +191,8 @@ class RecordServiceTest {
             emotionalTendency = "차분함",
             lyingPattern = "눈을 마주치지 못함",
             x = 5,
-            y = 15
+            y = 15,
+            locationId = 1
         )
         
         val fact = Fact(
@@ -251,7 +254,7 @@ class RecordServiceTest {
             logicExplanation = "범행에 사용된 흉기일 가능성이 높습니다.",
             decodedAnswer = null,
             isRedHerring = false,
-            relatedSuspectIds = "[]",
+            relatedSuspectIds = Json.of("[]"),
             x = 26,
             y = 6
         )

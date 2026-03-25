@@ -12,6 +12,7 @@ import com.maechuri.mainserver.scenario.entity.Furniture
 import com.maechuri.mainserver.scenario.entity.Location
 import com.maechuri.mainserver.scenario.entity.Scenario
 import com.maechuri.mainserver.scenario.entity.Suspect
+import io.r2dbc.postgresql.codec.Json
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
@@ -65,7 +66,9 @@ fun Location.toDomain(): DomainLocation {
 }
 
 fun Clue.toDomain(location: DomainLocation): DomainClue {
-    val relatedSuspectIdsList: List<Long>? = this.relatedSuspectIds?.let { if (it.isNotBlank()) objectMapper.readValue(it) else emptyList() }
+    val relatedSuspectIdsList: List<Long>? = this.relatedSuspectIds?.asString()?.let { 
+        if (it.isNotBlank()) objectMapper.readValue(it) else emptyList() 
+    }
 
     return DomainClue(
         clueId = this.clueId,
@@ -184,7 +187,7 @@ fun DomainClue.toEntity(scenarioId: Long): Clue {
         logicExplanation = this.logicExplanation,
         decodedAnswer = this.decodedAnswer,
         isRedHerring = this.isRedHerring,
-        relatedSuspectIds = this.relatedSuspectIds?.let { objectMapper.writeValueAsString(it) },
+        relatedSuspectIds = this.relatedSuspectIds?.let { Json.of(objectMapper.writeValueAsString(it)) },
         x = this.x,
         y = this.y,
         visualDescription = this.visualDescription,
