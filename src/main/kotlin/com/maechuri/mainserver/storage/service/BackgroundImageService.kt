@@ -179,9 +179,10 @@ class BackgroundImageService(
     }
 
     private fun buildFloorPrompt(locationName: String, locationType: String): String =
-        "Seamless tileable floor texture, overhead top-down view, flat 2D game tile, square tile, " +
-            "$locationName $locationType interior, consistent repeating pattern, no shadows, no gradients, " +
-            "solid floor material, game asset style"
+        "Single seamless floor tile texture, edges tileable, overhead top-down view, flat 2D game tile, square tile, " +
+                "$locationName $locationType interior floor material, centered single tile, " +
+                "no repetition, no grid, no multiple tiles, isolated texture, " +
+                "no shadows, no gradients, uniform material, game asset style"
 
     private fun buildWallPrompt(locationName: String, locationType: String): String =
         "Seamless tileable wall texture, front-facing flat view, flat 2D game tile, square tile, " +
