@@ -75,11 +75,11 @@ class ScenarioMapDataClient(
             for (x in 0 until mapWidth) {
                 if (wallTiles[y][x] != TILE_WALL) continue
 
-                val adjacentLocId: Long? = when {
-                    y + 1 < mapHeight && floorLocationId[y + 1][x] >= 0L -> floorLocationId[y + 1][x]
-                    x + 1 < mapWidth && floorLocationId[y][x + 1] >= 0L -> floorLocationId[y][x + 1]
-                    x - 1 >= 0 && floorLocationId[y][x - 1] >= 0L -> floorLocationId[y][x - 1]
-                    else -> null
+                // Use location wall tile ID only if the tile immediately below is a floor of that location.
+                val adjacentLocId: Long? = if (y + 1 < mapHeight && floorLocationId[y + 1][x] >= 0L) {
+                    floorLocationId[y + 1][x]
+                } else {
+                    null
                 }
 
                 if (adjacentLocId != null) {
