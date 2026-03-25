@@ -28,9 +28,6 @@ private val u2netLogger = KotlinLogging.logger {}
  *    alpha channel of the original image, then encode as PNG.
  *
  * The model file path is configurable via the `u2net.model-path` application property.
- * If the model file is not found or inference fails, the original bytes are returned
- * unchanged so that higher-level fallback logic (e.g. [HybridBackgroundRemovalService])
- * can take over.
  */
 @Service("u2NetBackgroundRemovalService")
 class U2NetBackgroundRemovalService(
