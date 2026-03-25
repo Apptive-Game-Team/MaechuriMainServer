@@ -16,5 +16,5 @@ data class Clue(
     val x: Short?,
     val y: Short?,
     val visualDescription: String? = null,
-    val assetsUrl: String? = null,
+    val assetId: Long? = null,
 )

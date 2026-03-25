@@ -77,7 +77,7 @@ fun Clue.toDomain(location: DomainLocation): DomainClue {
         x = this.x,
         y = this.y,
         visualDescription = this.visualDescription,
-        assetsUrl = this.assetsUrl,
+        assetId = this.assetId,
     )
 }
 
@@ -99,7 +99,7 @@ fun Suspect.toDomain(): DomainSuspect {
         x = this.x,
         y = this.y,
         visualDescription = this.visualDescription,
-        assetsUrl = this.assetsUrl,
+        assetId = this.assetId,
     )
 }
 
@@ -172,7 +172,7 @@ fun DomainClue.toEntity(scenarioId: Long): Clue {
         x = this.x,
         y = this.y,
         visualDescription = this.visualDescription,
-        assetsUrl = this.assetsUrl,
+        assetId = this.assetId,
     )
 }
 
@@ -195,7 +195,7 @@ fun DomainSuspect.toEntity(scenarioId: Long): Suspect {
         x = this.x,
         y = this.y,
         visualDescription = this.visualDescription,
-        assetsUrl = this.assetsUrl,
+        assetId = this.assetId,
     )
 }
 

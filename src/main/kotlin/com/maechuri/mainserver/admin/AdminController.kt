@@ -76,7 +76,7 @@ class AdminController(
 
     @GetMapping("/assets/new")
     suspend fun newAsset(model: Model): String {
-        model.addAttribute("asset", Asset(name = "", metaFileUrl = ""))
+        model.addAttribute("asset", Asset(name = "", finalUrl = ""))
         model.addAttribute("allTags", assetService.getAllTags())
         model.addAttribute("selectedTagIds", emptyList<Long>())
         return "admin/new-asset"
