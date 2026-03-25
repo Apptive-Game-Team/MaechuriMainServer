@@ -15,6 +15,7 @@ class ScenarioProvider(
     private val suspectRepository: SuspectRepository,
     private val factRepository: FactRepository,
     private val assetRepository: AssetRepository,
+    private val furnitureRepository: FurnitureRepository,
 ) {
 
     suspend fun findScenario(scenarioId: Long): Scenario {
@@ -26,6 +27,7 @@ class ScenarioProvider(
         val clueEntities = clueRepository.findAllByScenarioId(scenarioId).collectList().awaitSingle()
         val suspectEntities = suspectRepository.findAllByScenarioId(scenarioId).collectList().awaitSingle()
         val factEntities = factRepository.findAllByScenarioId(scenarioId).collectList().awaitSingle()
+        val furnitureEntities = furnitureRepository.findAllByScenarioId(scenarioId).collectList().awaitSingle()
 
         val assetIds = (clueEntities.mapNotNull { it.assetId } + suspectEntities.mapNotNull { it.assetId }).distinct()
         val assetsMap = if (assetIds.isNotEmpty()) {
@@ -50,12 +52,14 @@ class ScenarioProvider(
             it.toDomain().copy(assetsUrl = asset?.finalUrl)
         }
         val domainFacts = factEntities.map { it.toDomain() }
+        val domainFurnitures = furnitureEntities.map { it.toDomain() }
 
         // 3. Assemble the full domain object
         domainScenario.locations = domainLocations
         domainScenario.clues = domainClues
         domainScenario.suspects = domainSuspects
         domainScenario.facts = domainFacts
+        domainScenario.furnitures = domainFurnitures
 
         return domainScenario
     }

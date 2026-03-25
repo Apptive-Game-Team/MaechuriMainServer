@@ -32,4 +32,5 @@ data class Scenario(
     var clues: List<Clue> = emptyList(),
     var suspects: List<Suspect> = emptyList(),
     var facts: List<Fact> = emptyList(),
+    var furnitures: List<Furniture> = emptyList(),
 )

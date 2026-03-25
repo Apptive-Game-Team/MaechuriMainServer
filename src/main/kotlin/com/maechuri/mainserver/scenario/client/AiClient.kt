@@ -31,7 +31,7 @@ class AiClient(
 
     suspend fun getScenarioCreateTask(key: String): ScenarioStatusResponse {
         return webClient.get()
-            .uri("/api/scenarios/${key}")
+            .uri("/api/scenarios/tasks/${key}")
             .retrieve()
             .awaitBody()
     }

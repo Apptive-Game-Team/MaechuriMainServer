@@ -54,6 +54,7 @@
         .map-legend .suspect-dot { background: #0d6efd; }
         .map-legend .clue-dot { background: #dc3545; border-radius: 0; }
         .map-legend .location-dot { background: rgba(13, 110, 253, 0.3); border: 2px solid #0d6efd; border-radius: 2px; }
+        .map-legend .furniture-dot { background: rgba(139, 90, 43, 0.5); border: 1px solid #8b5a2b; border-radius: 2px; }
         .position-badge { font-family: monospace; }
 
         /* Modal overlay */
@@ -206,7 +207,8 @@
                     <div class="map-legend small d-none d-md-block">
                         <span class="suspect-dot"></span>Suspect &nbsp;
                         <span class="clue-dot"></span>Clue &nbsp;
-                        <span class="location-dot"></span>Room
+                        <span class="location-dot"></span>Room &nbsp;
+                        <span class="furniture-dot"></span>Furniture
                     </div>
 
                     <div class="zoom-controls">
@@ -350,6 +352,7 @@
     const MAP_TILES = /*[[${scenario.locations}]]*/ [];
     const SUSPECTS = /*[[${scenario.suspects}]]*/ [];
     const CLUES = /*[[${scenario.clues}]]*/ [];
+    const FURNITURES = /*[[${scenario.furnitures}]]*/ [];
 
     const CELL = 40;
 
@@ -411,6 +414,29 @@
             positions['clue-' + c.clueId] = { x: c.x, y: c.y };
         }
     });
+
+    // ── Asset Image Preloading ──
+    const imageCache = {};
+    let imagesLoading = 0;
+    let imagesLoaded = 0;
+
+    function preloadImage(url, key) {
+        if (!url || imageCache[key]) return;
+        imagesLoading++;
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => { imageCache[key] = img; imagesLoaded++; if (imagesLoaded >= imagesLoading) drawMap(); };
+        img.onerror = () => { imagesLoaded++; };
+        img.src = url;
+        imageCache[key] = null; // mark as loading
+    }
+
+    // Preload furniture assets
+    FURNITURES.forEach(f => preloadImage(f.assetsUrl, 'furniture-' + f.id));
+    // Preload suspect assets
+    SUSPECTS.forEach(s => preloadImage(s.assetsUrl, 'suspect-asset-' + s.suspectId));
+    // Preload clue assets
+    CLUES.forEach(c => preloadImage(c.assetsUrl, 'clue-asset-' + c.clueId));
 
     // ── Zoom System ──
     let currentZoom = 0; // 0 means 'Fit to Width' (100% of container)
@@ -477,25 +503,64 @@
             ctx.fillText(tile.name, px + 4, py + 4);
         });
 
+        // Furniture (rendered as images inside their location)
+        FURNITURES.forEach(f => {
+            const loc = locationMap[f.locationId];
+            if (!loc) return;
+            const absX = loc.x + f.originX;
+            const absY = loc.y + f.originY;
+            const px = absX * CELL, py = absY * CELL;
+            const pw = f.width * CELL, ph = f.height * CELL;
+            const img = imageCache['furniture-' + f.id];
+            if (img) {
+                ctx.drawImage(img, px, py, pw, ph);
+            } else {
+                // Fallback: semi-transparent box with name
+                ctx.fillStyle = 'rgba(139, 90, 43, 0.2)';
+                ctx.fillRect(px, py, pw, ph);
+                ctx.strokeStyle = '#8b5a2b';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(px, py, pw, ph);
+                ctx.fillStyle = '#8b5a2b';
+                ctx.font = '10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(f.name, px + pw / 2, py + ph / 2);
+            }
+        });
+
         // Suspects
         SUSPECTS.forEach(s => {
             const pos = positions['suspect-' + s.suspectId];
             if (!pos || pos.x == null || pos.y == null) return;
-            const cx = pos.x * CELL + CELL / 2, cy = pos.y * CELL + CELL / 2;
             const isRepoTarget = repositionKey === 'suspect-' + s.suspectId;
-            const radius = isRepoTarget ? 16 : 12;
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
-            ctx.fillStyle = isRepoTarget ? '#0a58ca' : '#0d6efd';
-            ctx.fill();
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 11px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('S', cx, cy);
+            const img = imageCache['suspect-asset-' + s.suspectId];
+            if (img) {
+                const size = isRepoTarget ? CELL + 8 : CELL;
+                const offset = isRepoTarget ? -4 : 0;
+                ctx.drawImage(img, pos.x * CELL + offset, pos.y * CELL + offset, size, size);
+                if (isRepoTarget) {
+                    ctx.strokeStyle = '#0a58ca';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(pos.x * CELL + offset, pos.y * CELL + offset, size, size);
+                }
+            } else {
+                // Fallback: circle marker
+                const cx = pos.x * CELL + CELL / 2, cy = pos.y * CELL + CELL / 2;
+                const radius = isRepoTarget ? 16 : 12;
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = isRepoTarget ? '#0a58ca' : '#0d6efd';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('S', cx, cy);
+            }
         });
 
         // Clues
@@ -503,19 +568,32 @@
             const pos = positions['clue-' + c.clueId];
             if (!pos || pos.x == null || pos.y == null) return;
             const isRepoTarget = repositionKey === 'clue-' + c.clueId;
-            const pad = isRepoTarget ? 2 : 6;
-            const rx = pos.x * CELL + pad, ry = pos.y * CELL + pad;
-            const rw = CELL - pad * 2, rh = CELL - pad * 2;
-            ctx.fillStyle = isRepoTarget ? '#b02a37' : '#dc3545';
-            ctx.fillRect(rx, ry, rw, rh);
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(rx, ry, rw, rh);
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 11px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('C', rx + rw / 2, ry + rh / 2);
+            const img = imageCache['clue-asset-' + c.clueId];
+            if (img) {
+                const size = isRepoTarget ? CELL + 4 : CELL;
+                const offset = isRepoTarget ? -2 : 0;
+                ctx.drawImage(img, pos.x * CELL + offset, pos.y * CELL + offset, size, size);
+                if (isRepoTarget) {
+                    ctx.strokeStyle = '#b02a37';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(pos.x * CELL + offset, pos.y * CELL + offset, size, size);
+                }
+            } else {
+                // Fallback: square marker
+                const pad = isRepoTarget ? 2 : 6;
+                const rx = pos.x * CELL + pad, ry = pos.y * CELL + pad;
+                const rw = CELL - pad * 2, rh = CELL - pad * 2;
+                ctx.fillStyle = isRepoTarget ? '#b02a37' : '#dc3545';
+                ctx.fillRect(rx, ry, rw, rh);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(rx, ry, rw, rh);
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('C', rx + rw / 2, ry + rh / 2);
+            }
         });
 
         ctx.textAlign = 'left';
@@ -524,7 +602,7 @@
 
     // ── Hit detection ──
     function hitTest(mx, my) {
-        // Check suspects
+        // Check suspects (highest priority)
         for (const s of SUSPECTS) {
             const pos = positions['suspect-' + s.suspectId];
             if (!pos || pos.x == null || pos.y == null) continue;
@@ -543,8 +621,24 @@
                 return { type: 'clue', id: c.clueId, key: 'clue-' + c.clueId };
             }
         }
+        // Check furniture
+        for (const f of FURNITURES) {
+            const loc = locationMap[f.locationId];
+            if (!loc) continue;
+            const absX = loc.x + f.originX;
+            const absY = loc.y + f.originY;
+            const px = absX * CELL, py = absY * CELL;
+            const pw = f.width * CELL, ph = f.height * CELL;
+            if (mx >= px && mx <= px + pw && my >= py && my <= py + ph) {
+                return { type: 'furniture', id: f.id, key: 'furniture-' + f.id };
+            }
+        }
         return null;
     }
+
+    // Furniture lookup map
+    const furnitureMap = {};
+    FURNITURES.forEach(f => { furnitureMap[f.id] = f; });
 
     // ── Modal ──
     function detailRow(label, value) {
@@ -552,6 +646,7 @@
     }
 
     function openSuspectModal(s) {
+        modalRepositionBtn.style.display = '';
         const pos = positions['suspect-' + s.suspectId];
         const loc = s.locationId != null ? locationMap[s.locationId] : null;
         modalTitle.textContent = 'Suspect: ' + s.name;
@@ -577,6 +672,7 @@
     }
 
     function openClueModal(c) {
+        modalRepositionBtn.style.display = '';
         const loc = c.location || locationMap[c.locationId] || {};
         modalTitle.textContent = 'Clue: ' + c.name;
         // Show relative position (stored in DB) not absolute
@@ -595,6 +691,23 @@
             detailRow('Position (relative)', relX != null ? `(${relX}, ${relY})` : 'unset');
         modalRepositionBtn.dataset.key = 'clue-' + c.clueId;
         modalRepositionBtn.dataset.name = c.name;
+        modalOverlay.classList.add('active');
+    }
+
+    function openFurnitureModal(f) {
+        const loc = locationMap[f.locationId] || {};
+        modalTitle.textContent = 'Furniture: ' + f.name;
+        let html =
+            detailRow('ID', f.id) +
+            detailRow('Location', loc.name || f.locationId) +
+            detailRow('Description', f.description) +
+            detailRow('Origin', `(${f.originX}, ${f.originY})`) +
+            detailRow('Size', `${f.width} x ${f.height}`);
+        if (f.assetsUrl) {
+            html += `<div class="mt-2"><img src="${f.assetsUrl}" style="max-width:100%;max-height:200px;border-radius:6px;" /></div>`;
+        }
+        modalBody.innerHTML = html;
+        modalRepositionBtn.style.display = 'none';
         modalOverlay.classList.add('active');
     }
 
@@ -718,6 +831,8 @@
                 openSuspectModal(suspectMap[hit.id]);
             } else if (hit.type === 'clue') {
                 openClueModal(clueMap[hit.id]);
+            } else if (hit.type === 'furniture') {
+                openFurnitureModal(furnitureMap[hit.id]);
             }
         }
     });
@@ -731,7 +846,9 @@
         const { mx, my } = canvasCoords(e);
         const hit = hitTest(mx, my);
         if (hit) {
-            const name = hit.type === 'suspect' ? suspectMap[hit.id].name : clueMap[hit.id].name;
+            const name = hit.type === 'suspect' ? suspectMap[hit.id].name
+                       : hit.type === 'clue' ? clueMap[hit.id].name
+                       : furnitureMap[hit.id].name;
             tooltip.textContent = name;
 
             // 툴팁 위치를 캔버스 기준 마우스 좌표에 맞게 보정
