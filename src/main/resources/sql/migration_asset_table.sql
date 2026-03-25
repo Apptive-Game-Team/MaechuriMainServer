@@ -44,3 +44,5 @@ ALTER TABLE suspect DROP COLUMN IF EXISTS assets_url;
 -- 5. Add foreign key constraints (optional but recommended)
 -- ALTER TABLE clue ADD CONSTRAINT fk_clue_asset_id FOREIGN KEY (asset_id) REFERENCES asset(id);
 -- ALTER TABLE suspect ADD CONSTRAINT fk_suspect_asset_id FOREIGN KEY (asset_id) REFERENCES asset(id);
+
+ALTER TABLE asset ALTER COLUMN final_url DROP NOT NULL;
