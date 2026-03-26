@@ -41,6 +41,9 @@ class ImageGenerationServiceTest {
     @Mock
     private lateinit var backgroundRemovalService: BackgroundRemovalService
 
+    @Mock
+    private lateinit var backgroundImageService: BackgroundImageService
+
     @InjectMocks
     private lateinit var imageGenerationService: ImageGenerationService
 

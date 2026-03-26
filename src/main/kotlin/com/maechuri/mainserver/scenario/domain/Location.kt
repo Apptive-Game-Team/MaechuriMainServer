@@ -11,4 +11,6 @@ data class Location(
     val canSee: List<Long>,
     val cannotSee: List<Long>,
     val accessRequires: String?,
+    val floorUrl: String? = null,
+    val wallUrl: String? = null,
 )

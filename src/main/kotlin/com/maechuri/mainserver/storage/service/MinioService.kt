@@ -76,4 +76,19 @@ class MinioService(
     suspend fun uploadText(key: String, content: String, contentType: String = "application/json") {
         uploadObject(key, content.toByteArray(Charsets.UTF_8), contentType)
     }
+
+    /**
+     * Download an object from MinIO as a byte array
+     * @param key The key (path) of the object to download
+     * @return The raw bytes of the object
+     */
+    suspend fun downloadObject(key: String): ByteArray {
+        return withContext(Dispatchers.IO) {
+            val request = GetObjectRequest.builder()
+                .bucket(minioProperties.bucketName)
+                .key(key)
+                .build()
+            s3Client.getObject(request).readAllBytes()
+        }
+    }
 }

@@ -11,8 +11,8 @@
             <input type="text" id="name" th:field="*{name}" class="form-control" required />
         </div>
         <div class="mb-3">
-            <label for="metaFileUrl" class="form-label">Asset URL</label>
-            <input type="text" id="metaFileUrl" th:field="*{metaFileUrl}" class="form-control" required />
+            <label for="finalUrl" class="form-label">Asset URL</label>
+            <input type="text" id="finalUrl" th:field="*{finalUrl}" class="form-control" required />
         </div>
         <div class="mb-3">
             <label for="tags" class="form-label">Tags</label>
@@ -41,7 +41,7 @@
 
                 const params = new URLSearchParams();
                 params.append('name', $('#name').val());
-                params.append('metaFileUrl', $('#metaFileUrl').val());
+                params.append('finalUrl', $('#finalUrl').val());
 
                 const selectedTags = $('#tags').val();
                 if (selectedTags) {

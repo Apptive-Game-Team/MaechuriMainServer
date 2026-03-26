@@ -74,7 +74,13 @@ class AssetService(
     suspend fun updateAsset(id: Long, assetDetails: Asset, tagIds: List<Long>): Asset? {
         val existingAsset = assetRepository.findById(id).awaitSingleOrNull() ?: return null
         existingAsset.name = assetDetails.name
-        existingAsset.metaFileUrl = assetDetails.metaFileUrl
+        existingAsset.finalUrl = assetDetails.finalUrl
+        existingAsset.status = assetDetails.status
+        existingAsset.prompt = assetDetails.prompt
+        existingAsset.rawUrl = assetDetails.rawUrl
+        existingAsset.resizedUrl = assetDetails.resizedUrl
+        existingAsset.updatedAt = java.time.LocalDateTime.now()
+        
         val savedAsset = assetRepository.save(existingAsset).awaitFirst()
 
         assetTagRepository.deleteByAssetId(id)

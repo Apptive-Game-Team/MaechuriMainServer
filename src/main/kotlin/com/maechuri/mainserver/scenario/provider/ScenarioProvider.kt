@@ -2,6 +2,7 @@ package com.maechuri.mainserver.scenario.provider
 
 import com.maechuri.mainserver.scenario.domain.Scenario
 import com.maechuri.mainserver.scenario.repository.*
+import com.maechuri.mainserver.game.repository.AssetRepository
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.stereotype.Component
 
@@ -13,6 +14,7 @@ class ScenarioProvider(
     private val scenarioRepository: ScenarioRepository,
     private val suspectRepository: SuspectRepository,
     private val factRepository: FactRepository,
+    private val assetRepository: AssetRepository,
     private val furnitureRepository: FurnitureRepository,
 ) {
 
@@ -27,6 +29,13 @@ class ScenarioProvider(
         val factEntities = factRepository.findAllByScenarioId(scenarioId).collectList().awaitSingle()
         val furnitureEntities = furnitureRepository.findAllByScenarioId(scenarioId).collectList().awaitSingle()
 
+        val assetIds = (clueEntities.mapNotNull { it.assetId } + suspectEntities.mapNotNull { it.assetId }).distinct()
+        val assetsMap = if (assetIds.isNotEmpty()) {
+            assetRepository.findAllById(assetIds).collectList().awaitSingle().associateBy { it.id }
+        } else {
+            emptyMap()
+        }
+
         // 2. Convert entities to domain objects
         val domainLocations = locationEntities.map { it.toDomain() }
         val locationMap = domainLocations.associateBy { it.locationId }
@@ -34,10 +43,14 @@ class ScenarioProvider(
         val domainClues = clueEntities.map {
             val location = locationMap[it.locationId]
                 ?: throw IllegalStateException("Location not found for clue ${it.clueId}")
-            it.toDomain(location)
+            val asset = assetsMap[it.assetId]
+            it.toDomain(location).copy(assetsUrl = asset?.finalUrl)
         }
 
-        val domainSuspects = suspectEntities.map { it.toDomain() }
+        val domainSuspects = suspectEntities.map {
+            val asset = assetsMap[it.assetId]
+            it.toDomain().copy(assetsUrl = asset?.finalUrl)
+        }
         val domainFacts = factEntities.map { it.toDomain() }
         val domainFurnitures = furnitureEntities.map { it.toDomain() }
 

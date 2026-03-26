@@ -6,6 +6,7 @@ import mu.KotlinLogging
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.ExchangeStrategies
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.awaitBodyOrNull
 import kotlin.lazy
@@ -59,17 +60,32 @@ class LeonardoClient(private val leonardoProperties: LeonardoProperties) {
             "height" to 1024,
             "num_images" to 1
         )
-        val response = webClient.post()
-            .uri("/generations")
-            .bodyValue(body)
-            .retrieve()
-            .awaitBody<Map<String, Any>>()
 
-        @Suppress("UNCHECKED_CAST")
-        val job = response["sdGenerationJob"] as? Map<String, Any>
-            ?: error("Unexpected Leonardo.ai response: missing sdGenerationJob")
-        return job["generationId"] as? String
-            ?: error("Unexpected Leonardo.ai response: missing generationId")
+        try {
+            val response = webClient.post()
+                .uri("/generations")
+                .bodyValue(body)
+                .retrieve()
+                .awaitBody<Map<String, Any>>()
+
+            @Suppress("UNCHECKED_CAST")
+            val job = response["sdGenerationJob"] as? Map<String, Any>
+                ?: error("Unexpected Leonardo.ai response: missing sdGenerationJob")
+            return job["generationId"] as? String
+                ?: error("Unexpected Leonardo.ai response: missing generationId")
+
+        } catch (e: WebClientResponseException) {
+            val errorBody = e.responseBodyAsString
+            val statusCode = e.statusCode
+
+            log.error {
+                "LeonardoClient failed. StatusCode=$statusCode, ErrorBody=$errorBody, Message=${e.message}"
+            }
+            throw e
+        } catch (e: Exception) {
+            log.error(e) { "An unexpected error occurred during generate image." }
+            throw e
+        }
     }
 
     /**

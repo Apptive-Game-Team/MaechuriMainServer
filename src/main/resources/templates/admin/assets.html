@@ -20,7 +20,7 @@
         <tr th:each="asset : ${assets}">
             <td th:text="${asset.id}"></td>
             <td th:text="${asset.name}"></td>
-            <td th:text="${asset.metaFileUrl}"></td>
+            <td th:text="${asset.finalUrl}"></td>
             <td>
                 <span th:each="assetTag : ${asset.assetTags}" th:text="${assetTag.tag.name}" class="badge bg-secondary me-1"></span>
             </td>

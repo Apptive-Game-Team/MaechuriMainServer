@@ -12,6 +12,7 @@ import com.maechuri.mainserver.scenario.entity.Furniture
 import com.maechuri.mainserver.scenario.entity.Location
 import com.maechuri.mainserver.scenario.entity.Scenario
 import com.maechuri.mainserver.scenario.entity.Suspect
+import io.r2dbc.postgresql.codec.Json
 import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
@@ -58,12 +59,16 @@ fun Location.toDomain(): DomainLocation {
         height = this.height,
         canSee = canSeeList,
         cannotSee = cannotSeeList,
-        accessRequires = this.accessRequires
+        accessRequires = this.accessRequires,
+        floorUrl = this.floorUrl,
+        wallUrl = this.wallUrl,
     )
 }
 
 fun Clue.toDomain(location: DomainLocation): DomainClue {
-    val relatedSuspectIdsList: List<Long>? = this.relatedSuspectIds?.let { if (it.isNotBlank()) objectMapper.readValue(it) else emptyList() }
+    val relatedSuspectIdsList: List<Long>? = this.relatedSuspectIds?.asString()?.let { 
+        if (it.isNotBlank()) objectMapper.readValue(it) else emptyList() 
+    }
 
     return DomainClue(
         clueId = this.clueId,
@@ -77,7 +82,7 @@ fun Clue.toDomain(location: DomainLocation): DomainClue {
         x = this.x,
         y = this.y,
         visualDescription = this.visualDescription,
-        assetsUrl = this.assetsUrl,
+        assetId = this.assetId,
     )
 }
 
@@ -99,7 +104,7 @@ fun Suspect.toDomain(): DomainSuspect {
         x = this.x,
         y = this.y,
         visualDescription = this.visualDescription,
-        assetsUrl = this.assetsUrl,
+        assetId = this.assetId,
     )
 }
 
@@ -166,7 +171,9 @@ fun DomainLocation.toEntity(scenarioId: Long): Location {
         height = this.height,
         canSee = objectMapper.writeValueAsString(this.canSee),
         cannotSee = objectMapper.writeValueAsString(this.cannotSee),
-        accessRequires = this.accessRequires
+        accessRequires = this.accessRequires,
+        floorUrl = this.floorUrl,
+        wallUrl = this.wallUrl,
     )
 }
 
@@ -180,11 +187,11 @@ fun DomainClue.toEntity(scenarioId: Long): Clue {
         logicExplanation = this.logicExplanation,
         decodedAnswer = this.decodedAnswer,
         isRedHerring = this.isRedHerring,
-        relatedSuspectIds = this.relatedSuspectIds?.let { objectMapper.writeValueAsString(it) },
+        relatedSuspectIds = this.relatedSuspectIds?.let { Json.of(objectMapper.writeValueAsString(it)) },
         x = this.x,
         y = this.y,
         visualDescription = this.visualDescription,
-        assetsUrl = this.assetsUrl,
+        assetId = this.assetId,
     )
 }
 
@@ -207,7 +214,7 @@ fun DomainSuspect.toEntity(scenarioId: Long): Suspect {
         x = this.x,
         y = this.y,
         visualDescription = this.visualDescription,
-        assetsUrl = this.assetsUrl,
+        assetId = this.assetId,
     )
 }
 
