@@ -45,7 +45,7 @@ class LatestScenarioIdProviderTest {
             date = LocalDate.now()
         )
 
-        whenever(scenarioRepository.findByDate(any())).thenReturn(Mono.just(todayScenario))
+        whenever(scenarioRepository.findTopByDateLessThanEqualOrderByDateDesc(any())).thenReturn(Mono.just(todayScenario))
 
         val result = provider.getTodayScenarioId()
 
@@ -53,8 +53,39 @@ class LatestScenarioIdProviderTest {
     }
 
     @Test
-    fun `getTodayScenarioId throws when no scenario exists for today`() = runBlocking {
-        whenever(scenarioRepository.findByDate(any())).thenReturn(Mono.empty())
+    fun `getTodayScenarioId returns the id of the most recent past scenario when no scenario exists for today`() = runBlocking {
+        val pastScenario = Scenario(
+            scenarioId = 7L,
+            difficulty = Difficulty.easy,
+            theme = "Past Theme",
+            tone = "Tone",
+            language = "ko",
+            incidentType = "Type",
+            incidentSummary = "Summary",
+            incidentTimeStart = Time.valueOf(LocalTime.NOON),
+            incidentTimeEnd = Time.valueOf(LocalTime.MIDNIGHT),
+            primaryObject = "Object",
+            crimeTimeStart = Time.valueOf(LocalTime.NOON),
+            crimeTimeEnd = Time.valueOf(LocalTime.MIDNIGHT),
+            crimeMethod = "Method",
+            noSupernatural = true,
+            noTimeTravel = true,
+            createdAt = Timestamp(System.currentTimeMillis()),
+            incidentLocationId = null,
+            crimeLocationId = null,
+            date = LocalDate.now().minusDays(1)
+        )
+
+        whenever(scenarioRepository.findTopByDateLessThanEqualOrderByDateDesc(any())).thenReturn(Mono.just(pastScenario))
+
+        val result = provider.getTodayScenarioId()
+
+        assertEquals(7L, result)
+    }
+
+    @Test
+    fun `getTodayScenarioId throws when no scenario exists for today or any previous date`() = runBlocking {
+        whenever(scenarioRepository.findTopByDateLessThanEqualOrderByDateDesc(any())).thenReturn(Mono.empty())
 
         assertFailsWith<IllegalStateException> {
             provider.getTodayScenarioId()
