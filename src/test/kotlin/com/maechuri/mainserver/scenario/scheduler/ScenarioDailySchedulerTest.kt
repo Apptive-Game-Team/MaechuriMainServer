@@ -23,6 +23,7 @@ import java.sql.Time
 import java.sql.Timestamp
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.ZoneId
 
 class ScenarioDailySchedulerTest {
 
@@ -66,13 +67,26 @@ class ScenarioDailySchedulerTest {
 
     @Test
     fun `generateScenarioWithRetry skips when scenario for tomorrow already exists`() = runTest {
-        whenever(scenarioRepository.findByDate(any())).thenReturn(Mono.just(scenarioEntity(date = LocalDate.now().plusDays(1))))
+        whenever(scenarioRepository.findByDate(any())).thenReturn(Mono.just(scenarioEntity(date = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1))))
 
         scheduler.generateScenarioWithRetry()
 
         verify(scenarioGenerationService, never()).startGeneration(any())
         verify(imageGenerationService, never()).generateImagesForScenario(any())
         verify(adminService, never()).updateScenarioDate(any(), any())
+    }
+
+
+    @Test
+    fun `generateScenarioWithRetry checks existing scenario with Seoul based target date`() = runTest {
+        val expectedTargetDate = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1)
+
+        whenever(scenarioRepository.findByDate(any())).thenReturn(Mono.just(scenarioEntity(date = expectedTargetDate)))
+
+        scheduler.generateScenarioWithRetry()
+
+        verify(scenarioRepository, times(1)).findByDate(expectedTargetDate)
+        verify(scenarioGenerationService, never()).startGeneration(any())
     }
 
     @Test
@@ -85,7 +99,7 @@ class ScenarioDailySchedulerTest {
         scheduler.generateScenarioWithRetry()
 
         verify(imageGenerationService, times(1)).generateImagesForScenario(1L)
-        verify(adminService, times(1)).updateScenarioDate(any(), any())
+        verify(adminService, times(1)).updateScenarioDate(1L, LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1))
     }
 
     @Test
@@ -106,7 +120,7 @@ class ScenarioDailySchedulerTest {
 
         verify(scenarioGenerationService, times(2)).startGeneration(any())
         verify(imageGenerationService, times(1)).generateImagesForScenario(2L)
-        verify(adminService, times(1)).updateScenarioDate(any(), any())
+        verify(adminService, times(1)).updateScenarioDate(2L, LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1))
     }
 
     @Test

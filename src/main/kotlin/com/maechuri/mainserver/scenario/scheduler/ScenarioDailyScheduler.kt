@@ -19,6 +19,7 @@ import org.springframework.context.event.EventListener
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.time.ZoneId
 
 private val log = KotlinLogging.logger {}
 
@@ -35,6 +36,7 @@ class ScenarioDailyScheduler(
         const val MAX_ATTEMPTS = 5
         const val POLL_INTERVAL_MS = 30_000L
         const val MAX_POLL_COUNT = 240 // 240 × 30 s = 2 hours
+        val SCHEDULER_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
     }
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -54,7 +56,7 @@ class ScenarioDailyScheduler(
     }
 
     internal suspend fun generateScenarioWithRetry() {
-        val targetDate = LocalDate.now().plusDays(1)
+        val targetDate = LocalDate.now(SCHEDULER_ZONE_ID).plusDays(1)
         val existing = scenarioRepository.findByDate(targetDate).awaitSingleOrNull()
         if (existing != null) {
             log.info { "Scenario for $targetDate already exists (id=${existing.scenarioId}), skipping generation" }
