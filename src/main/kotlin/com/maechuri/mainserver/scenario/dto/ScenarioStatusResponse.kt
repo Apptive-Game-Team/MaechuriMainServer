@@ -4,7 +4,7 @@ data class ScenarioStatusResponse(
     val key: String,
     val status: ScenarioCreateStatus,
     val theme: String,
-    val scenarioId: Long?,
+    val scenario_id: Long?,
     val error: String?
 ) {
 

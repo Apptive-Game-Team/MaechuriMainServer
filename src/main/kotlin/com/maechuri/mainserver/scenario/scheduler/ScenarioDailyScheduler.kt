@@ -95,7 +95,7 @@ class ScenarioDailyScheduler(
             log.info { "Poll result for key=$key: status=${status.status}" }
             when (status.status) {
                 ScenarioCreateStatus.COMPLETED -> {
-                    val scenarioId = status.scenarioId ?: run {
+                    val scenarioId = status.scenario_id ?: run {
                         log.error { "Scenario completed but scenarioId is null for key=$key" }
                         return false
                     }

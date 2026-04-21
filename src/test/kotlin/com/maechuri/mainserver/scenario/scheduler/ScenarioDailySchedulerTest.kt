@@ -40,7 +40,7 @@ class ScenarioDailySchedulerTest {
         ScenarioCreateResponse(key = key, message = "ok", status = ScenarioCreateStatus.PENDING, theme = "random")
 
     private fun statusResponse(status: ScenarioCreateStatus, scenarioId: Long? = null, error: String? = null) =
-        ScenarioStatusResponse(key = "test-key", status = status, theme = "random", scenarioId = scenarioId, error = error)
+        ScenarioStatusResponse(key = "test-key", status = status, theme = "random", scenario_id = scenarioId, error = error)
 
     private fun scenarioEntity(id: Long = 1L, date: LocalDate? = null) = Scenario(
         scenarioId = id,
