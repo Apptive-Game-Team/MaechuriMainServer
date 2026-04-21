@@ -115,8 +115,8 @@ class ScenarioDailyScheduler(
     private suspend fun onScenarioCompleted(scenarioId: Long, targetDate: LocalDate): Boolean {
         return try {
             log.info { "Generating images for scenario $scenarioId" }
-            imageGenerationService.generateImagesForScenario(scenarioId)
             adminService.updateScenarioDate(scenarioId, targetDate)
+//            imageGenerationService.generateImagesForScenario(scenarioId)
             log.info { "Scenario $scenarioId scheduled for $targetDate" }
             true
         } catch (e: Exception) {
