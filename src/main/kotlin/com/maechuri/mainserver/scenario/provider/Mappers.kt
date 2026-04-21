@@ -118,7 +118,7 @@ fun Furniture.toDomain(): DomainFurniture {
         originY = this.originY,
         width = this.width,
         height = this.height,
-        assetsUrl = this.assetsUrl,
+        assetsId = this.assetsId
     )
 }
 

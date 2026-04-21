@@ -15,5 +15,5 @@ data class Furniture(
     val originY: Int,
     val width: Int,
     val height: Int,
-    val assetsUrl: String?,
+    val assetsId: Int? = null,
 )
