@@ -75,8 +75,6 @@ class ScenarioDailySchedulerTest {
         verify(imageGenerationService, never()).generateImagesForScenario(any())
         verify(adminService, never()).updateScenarioDate(any(), any())
     }
-
-
     @Test
     fun `generateScenarioWithRetry checks existing scenario with Seoul based target date`() = runTest {
         val expectedTargetDate = LocalDate.now(ZoneId.of("Asia/Seoul")).plusDays(1)
